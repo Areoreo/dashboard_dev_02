@@ -505,50 +505,30 @@ export const processSelectedFeature = (
         return;
     }
 
-    console.log(
-        "Processing selectedFeature with hasBuiltInStats:",
-        hasBuiltInStats
-    );
-
     const properties = selectedFeature.properties;
     const timeSeriesData = [];
 
+    // Built-in statistics mode
     if (hasBuiltInStats) {
-        // Process new format with built-in min/max/mean
-        console.log("Using new format with built-in statistics");
-
-        // Extract all unique dates from property keys
         const dateKeys = Object.keys(properties).filter((key) =>
             /^y\d{6}(_\d+|_min|_max|_mean)?$/.test(key)
         );
 
-        const uniqueDates = [
-            ...new Set(
-                dateKeys
-                    .map((key) => {
-                        const match = key.match(/^y(\d{6})/);
-                        return match ? match[1] : null;
-                    })
-                    .filter(Boolean)
-            )
-        ].sort();
-
-        console.log("Found unique dates:", uniqueDates);
+        const uniqueDates = [...new Set(
+            dateKeys.map((key) => {
+                const match = key.match(/^y(\d{6})/);
+                return match ? match[1] : null;
+            }).filter(Boolean)
+        )].sort();
 
         uniqueDates.forEach((dateStr) => {
             const year = parseInt(dateStr.substring(0, 4), 10);
             const month = parseInt(dateStr.substring(4, 6), 10);
 
-            // Get built-in statistics
             const meanValue = properties[`y${dateStr}_mean`];
             const minValue = properties[`y${dateStr}_min`];
             const maxValue = properties[`y${dateStr}_max`];
 
-            console.log(
-                `Date ${dateStr}: mean=${meanValue}, min=${minValue}, max=${maxValue}`
-            );
-
-            // Get individual ensemble members
             const ensembleMembers = [];
             let ensembleIndex = 0;
             while (properties.hasOwnProperty(`y${dateStr}_${ensembleIndex}`)) {
@@ -559,184 +539,339 @@ export const processSelectedFeature = (
                 ensembleIndex++;
             }
 
-            if (meanValue !== null && meanValue !== undefined) {
-                timeSeriesData.push({
-                    year: year,
-                    month: month,
-                    date: new Date(year, month - 1, 1),
-                    formattedDate: formatDateString(year, month),
-
-                    // Built-in statistics
-                    mean:
-                        typeof meanValue === "number"
-                            ? meanValue
-                            : parseFloat(meanValue),
-                    min:
-                        typeof minValue === "number"
-                            ? minValue
-                            : parseFloat(minValue),
-                    max:
-                        typeof maxValue === "number"
-                            ? maxValue
-                            : parseFloat(maxValue),
-
-                    // Individual ensemble members
-                    ensembleMembers: ensembleMembers,
-
-                    // For backward compatibility, also include as 'value'
-                    value:
-                        typeof meanValue === "number"
-                            ? meanValue
-                            : parseFloat(meanValue)
-                });
-            }
+            timeSeriesData.push({
+                year,
+                month,
+                date: new Date(year, month - 1, 1),
+                formattedDate: formatDateString(year, month),
+                mean: parseFloat(meanValue),
+                min: parseFloat(minValue),
+                max: parseFloat(maxValue),
+                ensembleMembers,
+                value: parseFloat(meanValue)
+            });
         });
 
-        console.log(
-            "Processed time series data with built-in stats:",
-            timeSeriesData
-        );
         setChartType("ensembleWithStats");
     } else {
-        // Process legacy format based on options.overview
-        console.log("Processing legacy format");
-        console.log("Options overview:", options.overview);
+        // Ensemble (legacy) or regular time series
+        const keys = Object.keys(properties);
+        const ensembleDates = keys
+            .filter(key => /^y\d{6}_\d+$/.test(key))
+            .map(key => key.match(/^y(\d{6})/)[1]);
 
-        if (options.overview === "forecast") {
-            // Handle forecast data - look for patterns like y202506_0, y202506_1, etc.
-            console.log("Processing forecast data");
+        const hasEnsembles = ensembleDates.length > 0;
 
-            const forecastKeys = Object.keys(properties).filter((key) =>
-                /^y\d+_\d+$/.test(key)
-            );
+        if (hasEnsembles) {
+            const uniqueDates = [...new Set(ensembleDates)].sort();
 
-            console.log("Detected forecast data pattern:", forecastKeys);
+            uniqueDates.forEach(dateStr => {
+                const year = parseInt(dateStr.slice(0, 4), 10);
+                const month = parseInt(dateStr.slice(4, 6), 10);
+                let ensembleIndex = 0;
 
-            const extractedData = forecastKeys
-                .map((key) => {
-                    const match = key.match(/^y(\d+)_(\d+)$/);
-                    if (match) {
-                        // Handle both 4-digit years (y2025_0) and 6-digit year-month (y202506_0)
-                        const yearStr = match[1];
-                        let year,
-                            month = 1;
+                while (properties.hasOwnProperty(`y${dateStr}_${ensembleIndex}`)) {
+                    const value = properties[`y${dateStr}_${ensembleIndex}`];
+                    timeSeriesData.push({
+                        year,
+                        month,
+                        ensemble: ensembleIndex,
+                        date: new Date(year, month - 1, 1),
+                        formattedDate: formatDateString(year, month),
+                        value: parseFloat(value)
+                    });
+                    ensembleIndex++;
+                }
+            });
 
-                        if (yearStr.length === 4) {
-                            year = parseInt(yearStr, 10);
-                        } else if (yearStr.length === 6) {
-                            year = parseInt(yearStr.substring(0, 4), 10);
-                            month = parseInt(yearStr.substring(4, 6), 10);
-                        } else {
-                            return null;
-                        }
-
-                        return {
-                            year: year,
-                            month: month,
-                            ensemble: parseInt(match[2], 10),
-                            value:
-                                typeof properties[key] === "number"
-                                    ? properties[key]
-                                    : parseFloat(properties[key]),
-                            date: new Date(year, month - 1, 1),
-                            formattedDate: formatDateString(year, month)
-                        };
-                    }
-                    return null;
-                })
-                .filter(
-                    (item) =>
-                        item !== null &&
-                        item.value !== null &&
-                        item.value !== undefined &&
-                        !isNaN(item.value)
-                );
-
-            timeSeriesData.push(...extractedData);
             setChartType("ensemble");
         } else {
-            // Handle historical data - look for patterns like y2020, y1990, etc.
-            console.log("Processing historical data");
+            // Fallback to normal time series: yYYYY or yYYYYMM
+            Object.keys(properties).forEach((key) => {
+                if (/^y\d{4,6}$/.test(key)) {
+                    const raw = properties[key];
+                    const dateStr = key.slice(1);
+                    const year = parseInt(dateStr.slice(0, 4), 10);
+                    const month = dateStr.length === 6 ? parseInt(dateStr.slice(4, 6), 10) : 1;
 
-            const historicalKeys = Object.keys(properties).filter((key) =>
-                /^y\d{4,6}$/.test(key)
-            );
-
-            console.log("Detected historical data pattern:", historicalKeys);
-
-            const extractedData = historicalKeys
-                .map((key) => {
-                    const yearStr = key.substring(1); // Remove 'y' prefix
-                    let year,
-                        month = 1;
-
-                    if (yearStr.length === 4) {
-                        // Format: y2020 (yearly)
-                        year = parseInt(yearStr, 10);
-                    } else if (yearStr.length === 6) {
-                        // Format: y202001 (monthly)
-                        year = parseInt(yearStr.substring(0, 4), 10);
-                        month = parseInt(yearStr.substring(4, 6), 10);
-                    } else {
-                        return null;
-                    }
-
-                    const value = properties[key];
-
-                    if (
-                        !isNaN(year) &&
-                        !isNaN(month) &&
-                        value !== null &&
-                        value !== undefined
-                    ) {
-                        return {
-                            year: year,
-                            month: month,
-                            value:
-                                typeof value === "number"
-                                    ? value
-                                    : parseFloat(value),
+                    if (!isNaN(raw)) {
+                        timeSeriesData.push({
+                            year,
+                            month,
                             date: new Date(year, month - 1, 1),
-                            formattedDate: formatDateString(year, month)
-                        };
+                            formattedDate: formatDateString(year, month),
+                            value: parseFloat(raw)
+                        });
                     }
-                    return null;
-                })
-                .filter(
-                    (item) =>
-                        item !== null &&
-                        item.value !== null &&
-                        item.value !== undefined &&
-                        !isNaN(item.value)
-                );
+                }
+            });
 
-            timeSeriesData.push(...extractedData);
-            setChartType(
-                timeSeriesData.some((d) => d.month > 1)
-                    ? "timeSeries"
-                    : "standard"
-            );
+            setChartType(timeSeriesData.some((d) => d.month > 1) ? "timeSeries" : "standard");
         }
     }
 
-    // Sort by date
     timeSeriesData.sort((a, b) => a.date - b.date);
 
-    console.log("Final processed time series data:", timeSeriesData);
-
-    setProcessedData(timeSeriesData);
-
-    // Set the initial year range based on available data
-    const years = [...new Set(timeSeriesData.map((d) => d.year))].sort(
-        (a, b) => a - b
-    );
+    const years = [...new Set(timeSeriesData.map((d) => d.year))].sort((a, b) => a - b);
     if (years.length > 0) {
         setStartYear(years[0]);
         setEndYear(years[years.length - 1]);
     }
 
+    setProcessedData(timeSeriesData);
     setDataReady(true);
 };
+
+
+// // Process selectedFeature from GeoJSON to extract time series data
+// export const processSelectedFeature = (
+//     selectedFeature,
+//     options,
+//     setChartType,
+//     setProcessedData,
+//     setDataReady,
+//     setStartYear,
+//     setEndYear,
+//     hasBuiltInStats = false
+// ) => {
+//     if (!selectedFeature || !selectedFeature.properties) {
+//         setProcessedData([]);
+//         setDataReady(true);
+//         return;
+//     }
+
+//     console.log(
+//         "Processing selectedFeature with hasBuiltInStats:",
+//         hasBuiltInStats
+//     );
+
+//     const properties = selectedFeature.properties;
+//     const timeSeriesData = [];
+
+//     if (hasBuiltInStats) {
+//         // Process new format with built-in min/max/mean
+//         console.log("Using new format with built-in statistics");
+
+//         // Extract all unique dates from property keys
+//         const dateKeys = Object.keys(properties).filter((key) =>
+//             /^y\d{6}(_\d+|_min|_max|_mean)?$/.test(key)
+//         );
+
+//         const uniqueDates = [
+//             ...new Set(
+//                 dateKeys
+//                     .map((key) => {
+//                         const match = key.match(/^y(\d{6})/);
+//                         return match ? match[1] : null;
+//                     })
+//                     .filter(Boolean)
+//             )
+//         ].sort();
+
+//         console.log("Found unique dates:", uniqueDates);
+
+//         uniqueDates.forEach((dateStr) => {
+//             const year = parseInt(dateStr.substring(0, 4), 10);
+//             const month = parseInt(dateStr.substring(4, 6), 10);
+
+//             // Get built-in statistics
+//             const meanValue = properties[`y${dateStr}_mean`];
+//             const minValue = properties[`y${dateStr}_min`];
+//             const maxValue = properties[`y${dateStr}_max`];
+
+//             console.log(
+//                 `Date ${dateStr}: mean=${meanValue}, min=${minValue}, max=${maxValue}`
+//             );
+
+//             // Get individual ensemble members
+//             const ensembleMembers = [];
+//             let ensembleIndex = 0;
+//             while (properties.hasOwnProperty(`y${dateStr}_${ensembleIndex}`)) {
+//                 ensembleMembers.push({
+//                     ensemble: ensembleIndex,
+//                     value: properties[`y${dateStr}_${ensembleIndex}`]
+//                 });
+//                 ensembleIndex++;
+//             }
+
+//             if (meanValue !== null && meanValue !== undefined) {
+//                 timeSeriesData.push({
+//                     year: year,
+//                     month: month,
+//                     date: new Date(year, month - 1, 1),
+//                     formattedDate: formatDateString(year, month),
+
+//                     // Built-in statistics
+//                     mean:
+//                         typeof meanValue === "number"
+//                             ? meanValue
+//                             : parseFloat(meanValue),
+//                     min:
+//                         typeof minValue === "number"
+//                             ? minValue
+//                             : parseFloat(minValue),
+//                     max:
+//                         typeof maxValue === "number"
+//                             ? maxValue
+//                             : parseFloat(maxValue),
+
+//                     // Individual ensemble members
+//                     ensembleMembers: ensembleMembers,
+
+//                     // For backward compatibility, also include as 'value'
+//                     value:
+//                         typeof meanValue === "number"
+//                             ? meanValue
+//                             : parseFloat(meanValue)
+//                 });
+//             }
+//         });
+
+//         console.log(
+//             "Processed time series data with built-in stats:",
+//             timeSeriesData
+//         );
+//         setChartType("ensembleWithStats");
+//     } else {
+//         // Process legacy format based on options.overview
+//         console.log("Processing legacy format");
+//         console.log("Options overview:", options.overview);
+
+//         if (options.overview === "forecast") {
+//             // Handle forecast data - look for patterns like y202506_0, y202506_1, etc.
+//             console.log("Processing forecast data");
+
+//             const forecastKeys = Object.keys(properties).filter((key) =>
+//                 /^y\d+_\d+$/.test(key)
+//             );
+
+//             console.log("Detected forecast data pattern:", forecastKeys);
+
+//             const extractedData = forecastKeys
+//                 .map((key) => {
+//                     const match = key.match(/^y(\d+)_(\d+)$/);
+//                     if (match) {
+//                         // Handle both 4-digit years (y2025_0) and 6-digit year-month (y202506_0)
+//                         const yearStr = match[1];
+//                         let year,
+//                             month = 1;
+
+//                         if (yearStr.length === 4) {
+//                             year = parseInt(yearStr, 10);
+//                         } else if (yearStr.length === 6) {
+//                             year = parseInt(yearStr.substring(0, 4), 10);
+//                             month = parseInt(yearStr.substring(4, 6), 10);
+//                         } else {
+//                             return null;
+//                         }
+
+//                         return {
+//                             year: year,
+//                             month: month,
+//                             ensemble: parseInt(match[2], 10),
+//                             value:
+//                                 typeof properties[key] === "number"
+//                                     ? properties[key]
+//                                     : parseFloat(properties[key]),
+//                             date: new Date(year, month - 1, 1),
+//                             formattedDate: formatDateString(year, month)
+//                         };
+//                     }
+//                     return null;
+//                 })
+//                 .filter(
+//                     (item) =>
+//                         item !== null &&
+//                         item.value !== null &&
+//                         item.value !== undefined &&
+//                         !isNaN(item.value)
+//                 );
+
+//             timeSeriesData.push(...extractedData);
+//             setChartType("ensemble");
+//         } else {
+//             // Handle historical data - look for patterns like y2020, y1990, etc.
+//             console.log("Processing historical data");
+
+//             const historicalKeys = Object.keys(properties).filter((key) =>
+//                 /^y\d{4,6}$/.test(key)
+//             );
+
+//             console.log("Detected historical data pattern:", historicalKeys);
+
+//             const extractedData = historicalKeys
+//                 .map((key) => {
+//                     const yearStr = key.substring(1); // Remove 'y' prefix
+//                     let year,
+//                         month = 1;
+
+//                     if (yearStr.length === 4) {
+//                         // Format: y2020 (yearly)
+//                         year = parseInt(yearStr, 10);
+//                     } else if (yearStr.length === 6) {
+//                         // Format: y202001 (monthly)
+//                         year = parseInt(yearStr.substring(0, 4), 10);
+//                         month = parseInt(yearStr.substring(4, 6), 10);
+//                     } else {
+//                         return null;
+//                     }
+
+//                     const value = properties[key];
+
+//                     if (
+//                         !isNaN(year) &&
+//                         !isNaN(month) &&
+//                         value !== null &&
+//                         value !== undefined
+//                     ) {
+//                         return {
+//                             year: year,
+//                             month: month,
+//                             value:
+//                                 typeof value === "number"
+//                                     ? value
+//                                     : parseFloat(value),
+//                             date: new Date(year, month - 1, 1),
+//                             formattedDate: formatDateString(year, month)
+//                         };
+//                     }
+//                     return null;
+//                 })
+//                 .filter(
+//                     (item) =>
+//                         item !== null &&
+//                         item.value !== null &&
+//                         item.value !== undefined &&
+//                         !isNaN(item.value)
+//                 );
+
+//             timeSeriesData.push(...extractedData);
+//             setChartType(
+//                 timeSeriesData.some((d) => d.month > 1)
+//                     ? "timeSeries"
+//                     : "standard"
+//             );
+//         }
+//     }
+
+//     // Sort by date
+//     timeSeriesData.sort((a, b) => a.date - b.date);
+
+//     console.log("Final processed time series data:", timeSeriesData);
+
+//     setProcessedData(timeSeriesData);
+
+//     // Set the initial year range based on available data
+//     const years = [...new Set(timeSeriesData.map((d) => d.year))].sort(
+//         (a, b) => a - b
+//     );
+//     if (years.length > 0) {
+//         setStartYear(years[0]);
+//         setEndYear(years[years.length - 1]);
+//     }
+
+//     setDataReady(true);
+// };
 
 // Legacy function for backward compatibility - now calls processSelectedFeature
 export const processData = (

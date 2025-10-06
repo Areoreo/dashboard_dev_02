@@ -1,0 +1,132 @@
+/* Alert marker styles */
+.alert-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    // animation: pulse 2s infinite;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0.4);
+  }
+  
+  .alert-high {
+    color: #ff3b30;
+    background-color: rgba(255, 59, 48, 0.2);
+  }
+  
+  .alert-low {
+    color: #007aff;
+    background-color: rgba(0, 122, 255, 0.2);
+  }
+  
+  /* Alert tooltip styles */
+  .alert-tooltip {
+    background-color: white;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    min-width: 200px;
+    max-width: 300px;
+  }
+  
+  .alert-tooltip.alert-high {
+    border-left: 3px solid #ff3b30;
+  }
+  
+  .alert-tooltip.alert-low {
+    border-left: 3px solid #007aff;
+  }
+  
+  .alert-tooltip strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 16px;
+  }
+  
+  .alert-tooltip p {
+    margin: 0;
+  }
+  
+  /* Pulse animation for alert markers */
+  @keyframes pulse {
+    0% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.2);
+    }
+    
+    70% {
+      transform: scale(1);
+      box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+    }
+    
+    100% {
+      transform: scale(0.95);
+      box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+  }
+  
+  /* Warning control panel styles */
+  .warning-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+  }
+  
+  .warning-controls label {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 0;
+  }
+  
+  .warning-controls input[type="checkbox"] {
+    margin-right: 6px;
+  }
+  
+  /* Alert legend */
+  .alert-legend {
+    background: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  
+  .alert-legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  
+  .alert-legend-icon {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  
+  .alert-legend-high {
+    background-color: #ff3b30;
+  }
+  
+  .alert-legend-low {
+    background-color: #007aff;
+  }
+  
+  /* Make sure SVG icons inside alerts are sized correctly */
+  .alert-marker svg {
+    width: 20px;
+    height: 20px;
+  }

@@ -1,0 +1,127 @@
+/**
+ * Responsive Sidebar Component Styles
+ * To be added to /styles/core/components/_responsive-sidebar.scss
+ */
+
+ @layer components {
+    .sidebar {
+      width: max(300px, 18vw);
+      background-color: #f8f9fa;
+      box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      transition: width 0.3s ease, max-height 0.3s ease;
+      overflow-y: auto;
+      position: relative;
+      
+      scrollbar-width: thin;
+      scrollbar-color: #555 #fff;
+      
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: #2d336b;
+        border-radius: 2px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: #fff;
+      }
+      
+      &.collapsed {
+        width: 50px;
+        overflow: hidden;
+        box-shadow: 0 0 0 rgba(0, 0, 0, 0.2);
+      }
+      
+      @media (max-width: 767px) {
+        width: 100%;
+        height: auto;
+        max-height: 0;
+        overflow: hidden;
+        position: absolute;
+        top: 70px;
+        left: 0;
+        right: 0;
+        z-index: 1001;
+        border-top: 1px solid #ddd;
+        border-bottom: 1px solid #ddd;
+        
+        &.open {
+          max-height: 80vh;
+          overflow-y: auto;
+        }
+        
+        &.collapsed {
+          width: 100%;
+          max-height: 50px;
+        }
+      }
+      
+      .toggle-btn {
+        position: absolute;
+        top: 30%;
+        left: max(300px, 18vw);
+        z-index: 1000;
+        padding: 5px 10px;
+        background-color: #2d336b;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: left 0.3s ease;
+        
+        @media (max-width: 767px) {
+          top: 5px;
+          left: auto;
+          right: 10px;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 14px;
+        }
+      }
+      
+      &.collapsed .toggle-btn {
+        left: 50px;
+        
+        @media (max-width: 767px) {
+          left: auto;
+        }
+      }
+      
+      .sidebar-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        transition: opacity 0.1s ease-in-out;
+        
+        &.visible {
+          opacity: 1;
+        }
+        
+        &.hidden {
+          opacity: 0;
+        }
+        
+        @media (max-width: 767px) {
+          padding: 8px;
+        }
+        
+        // Make selectors more mobile-friendly
+        select, button {
+          @media (max-width: 767px) {
+            height: 40px;
+            font-size: 16px; // Prevent iOS zoom on focus
+          }
+        }
+        
+        .variable-section {
+          @media (max-width: 767px) {
+            margin-bottom: 12px;
+          }
+        }
+      }
+    }
+  }

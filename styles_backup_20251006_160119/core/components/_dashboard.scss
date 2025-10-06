@@ -1,0 +1,283 @@
+@layer components {
+    // .dashboard-container {
+    //     display: flex;
+    //     // height: 100vh; // 使地图和侧边栏共同占据整个屏幕高度
+    //     display: flex;
+    //     margin-top: 70px;
+    //     height: calc(100vh - 70px);
+    // }
+
+    .sidebar {
+        width: max(300px, 18vw);
+        background-color: #f8f9fa;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+
+        transition: width 0.3s ease;
+        overflow-y: auto;
+
+        scrollbar-width: thin;
+        scrollbar-color: #555 #fff;
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #2d336b;
+            border-radius: 2px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #fff;
+        }
+
+        &.collapsed {
+            width: 50px;
+            overflow: hidden;
+            box-shadow: 0 0 0 rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            font-weight: 600;
+            font-size: $h2-size;
+        }
+
+        @media (max-width: $sc-width-threshold) {
+          display: none;
+            width: 100%;
+            height: auto;
+            max-height: 0;
+            overflow: hidden;
+            position: absolute;
+            top: 70px;
+            left: 0;
+            right: 0;
+            z-index: 1011;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            
+            &.open {
+              max-height: 80vh;
+              overflow-y: auto;
+            }
+            
+            &.collapsed {
+              width: 100%;
+              max-height: 50px;
+            }
+        }
+
+        
+
+        // .toggle-btn {
+        //     background: #007bff;
+        //     color: white;
+        //     border: none;
+        //     cursor: pointer;
+        //     width: 100%;
+        //     padding: 10px;
+        // }
+
+        /* 固定按钮位置 */
+        // .toggle-btn {
+        //     position: absolute;
+        //     top: 30%;
+        //     left: max(300px, 18vw);
+        //     z-index: 1000; /* 确保按钮浮在地图之上 */
+        //     padding: 5px 10px;
+        //     background-color: #2d336b;
+        //     color: white;
+        //     border: none;
+        //     border-radius: 5px;
+        //     cursor: pointer;
+        //     transition: left 0.3s ease;
+        // }
+        // &.collapsed .toggle-btn {
+        //     left: 50px; /* 当 Side Bar 收起时，按钮的位置调整 */
+        //     transition: 0.3s ease;
+        // }
+        .toggle-btn {
+            position: absolute;
+            top: 30%;
+            left: max(300px, 18vw);
+            z-index: 1000;
+            padding: 5px 10px;
+            background-color: #2d336b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: left 0.3s ease;
+            
+            @media (max-width: $sc-width-threshold) {
+              display: none;
+              top: 5px;
+              left: auto;
+              right: 10px;
+              padding: 2px 8px;
+              border-radius: 4px;
+              font-size: 14px;
+            }
+          }
+          
+          &.collapsed .toggle-btn {
+            left: 50px;
+            
+            @media (max-width: $sc-width-threshold) {
+              left: auto;
+            }
+          }
+
+
+        // .sidebar-content {
+        //     padding: 4px;
+        //     display: flex;
+        //     flex-direction: column;
+
+        //     opacity: 0;
+        //     transition: opacity 0.1s ease-in-out;
+
+        //     &.visible {
+        //         opacity: 1;
+        //     }
+
+        //     &.hidden {
+        //         opacity: 0;
+        //     }
+        // }
+
+        .sidebar-content {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.1s ease-in-out;
+            
+            &.visible {
+              opacity: 1;
+            }
+            
+            &.hidden {
+              opacity: 0;
+            }
+            
+            @media (max-width: $sc-width-threshold) {
+              padding: 8px;
+            }
+            
+            // Make selectors more mobile-friendly
+            select, button {
+              @media (max-width: $sc-width-threshold) {
+                height: 40px;
+                font-size: 16px; // Prevent iOS zoom on focus
+              }
+            }
+            
+            .variable-section {
+              @media (max-width: $sc-width-threshold) {
+                margin-bottom: 12px;
+              }
+            }
+          }
+
+    }
+
+    .map-container {
+        flex-grow: 1;
+        height: calc(100vh - 70px);
+        position: relative;
+
+        .scroll-to-details-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d336b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 999;
+        }
+    }
+
+    .details-container {
+        padding: 20px;
+        background: #fff;
+        border-top: 2px solid #ccc;
+        text-align: center;
+
+        .back-to-map-btn {
+            background: #2d336b;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .info-panel,
+        .chart-panel {
+            margin-top: 20px;
+        }
+    }
+
+    .error-popup {
+        position: fixed;
+        top: 90px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(255, 0, 0, 0.8);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: $base-size;
+        z-index: 1000;
+        animation: fadeOut 3s ease-in-out forwards;
+    }
+
+    @keyframes fadeOut {
+        0% {
+            opacity: 1;
+        }
+        70% {
+            opacity: 1;
+        }
+        100% {
+            opacity: 0;
+        }
+    }
+
+    select {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 6px;
+        margin-bottom: 6px;
+        font-size: $base-size;
+        transition: all 0.1s ease-in-out;
+        background-color: white;
+        color: black;
+        cursor: pointer;
+
+        &:focus {
+            outline: none;
+            border-color: #2d336b;
+            // border-width: 2px;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+    }
+
+    option {
+        padding: 10px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    select option:checked {
+        background-color: #2d336b; // 选中项背景变蓝
+        color: white; // 选中项文字变白
+    }
+}

@@ -1,10 +1,12 @@
 /*
 
 =========================================================
-* RICE-MAP DASHBOARD 
+* Avenue CSS Kit v0.1
 =========================================================
 
-
+* Demo Page: 'https://nutritrack.chrstnl.com/'
+* Copyright 2023 @chrstnl 
+* Coded by @chrstnl
 
 =========================================================
 
@@ -22,29 +24,28 @@
 @import "core/typography";
 @import "core/utilities";
 
-// Components from the template, currently not useful for our dashboard
-
-// @import "core/components/button";
-// @import "core/components/badge";
-// @import "core/components/nav";
-// @import "core/components/card";
-// @import "core/components/page-banner";
-// @import "core/components/footer";
+// Core Components
+@import "core/components/button";
+@import "core/components/badge";
+@import "core/components/nav";
 @import "core/components/header";
+@import "core/components/card";
+@import "core/components/page-banner";
+@import "core/components/footer";
 
 // My Components Styles
 @import "core/components/variable-selector";
 @import "core/components/legend-spi";
 @import "core/components/map-legend";
 @import "core/components/date-selector";
-// @import "core/components/dash-top";  # after test, most functions are overode by _responsive.scss. Only 'language' is not handled in _responsive.scss
+@import "core/components/dash-top";
 @import "core/components/loading-spinner";
 @import "core/components/alerts";
 @import "core/components/chart-component";
 
 @import "core/components/dashboard";
 
-// Responsive styles
+// Responsive styles - add this import
 @import "core/responsive";
 
 // Core Plugins

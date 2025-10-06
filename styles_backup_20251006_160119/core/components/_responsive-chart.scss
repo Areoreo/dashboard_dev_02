@@ -1,0 +1,237 @@
+/**
+ * Responsive Chart Component Styles
+ * To be added to /styles/core/components/_responsive-chart.scss
+ */
+
+ @layer components {
+    .chart-component {
+      width: 100%;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      
+      @media (max-width: 767px) {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      
+      .chart-header {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        
+        @media (max-width: 767px) {
+          gap: 0.5rem;
+          margin-bottom: 1rem;
+        }
+        
+        .chart-title {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #333;
+          margin: 0;
+          
+          @media (max-width: 767px) {
+            font-size: 1.2rem;
+          }
+        }
+      }
+      
+      .chart-controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        
+        @media (max-width: 767px) {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.75rem;
+        }
+        
+        .range-selector {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+          
+          @media (max-width: 767px) {
+            width: 100%;
+          }
+        }
+        
+        .year-range {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          align-items: center;
+          
+          @media (max-width: 767px) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+            width: 100%;
+            
+            label {
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 0.25rem;
+              
+              .year-select {
+                width: 100%;
+              }
+            }
+          }
+        }
+        
+        .update-button,
+        .download-button {
+          @media (max-width: 767px) {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+        
+        .download-options {
+          position: relative;
+          
+          @media (max-width: 767px) {
+            width: 100%;
+            
+            .download-button {
+              width: 100%;
+            }
+            
+            .download-dropdown {
+              width: 100%;
+            }
+          }
+        }
+      }
+      
+      .chart-container {
+        width: 100%;
+        height: 450px;
+        position: relative;
+        
+        @media (max-width: 767px) {
+          height: 300px;
+        }
+        
+        canvas {
+          @media (max-width: 767px) {
+            width: 100% !important;
+            height: 100% !important;
+          }
+        }
+      }
+      
+      .no-data-message {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #666;
+        font-size: 1.1rem;
+        text-align: center;
+        padding: 2rem;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+        
+        @media (max-width: 767px) {
+          font-size: 0.95rem;
+          padding: 1.5rem 1rem;
+        }
+      }
+      
+      .chart-footer {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #eee;
+        
+        @media (max-width: 767px) {
+          margin-top: 1rem;
+          padding-top: 0.75rem;
+        }
+        
+        h3 {
+          font-size: 1.1rem;
+          margin-bottom: 0.75rem;
+          color: #444;
+          
+          @media (max-width: 767px) {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+          }
+        }
+        
+        ul {
+          padding-left: 1.5rem;
+          margin-bottom: 1rem;
+          
+          @media (max-width: 767px) {
+            padding-left: 1rem;
+          }
+        }
+        
+        li {
+          margin-bottom: 0.4rem;
+          font-size: 0.95rem;
+          
+          @media (max-width: 767px) {
+            font-size: 0.85rem;
+            margin-bottom: 0.3rem;
+          }
+        }
+      }
+    }
+    
+    // Add responsive styles for D3 charts
+    .d3-chart-component {
+      @media (max-width: 767px) {
+        .chart-container {
+          height: 300px;
+        }
+        
+        .chart-title {
+          font-size: 16px;
+        }
+        
+        .year-range {
+          flex-direction: column;
+          align-items: flex-start;
+          width: 100%;
+          
+          label {
+            width: 100%;
+            margin-bottom: 8px;
+            
+            select {
+              width: 100%;
+              margin-left: 0;
+              margin-top: 4px;
+            }
+          }
+        }
+        
+        .update-button, 
+        .download-button {
+          width: 100%;
+          margin-top: 8px;
+        }
+        
+        .download-dropdown {
+          width: 100%;
+        }
+        
+        svg {
+          height: 300px !important;
+        }
+      }
+    }
+  }

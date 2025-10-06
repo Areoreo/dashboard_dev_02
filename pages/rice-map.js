@@ -586,13 +586,13 @@ const ChartComponent = dynamic(
     { ssr: false }
 );
 
-const D3TimeSeriesChart = dynamic(
-    () =>
-        import("@components/D3TimeSeriesChart").then(
-            (mod) => mod.D3TimeSeriesChart
-        ),
-    { ssr: false }
-);
+// const D3TimeSeriesChart = dynamic(
+//     () =>
+//         import("@components/D3TimeSeriesChart").then(
+//             (mod) => mod.D3TimeSeriesChart
+//         ),
+//     { ssr: false }
+// );
 
 /**
  * Get current date information for dynamic default setting

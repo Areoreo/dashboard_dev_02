@@ -18,6 +18,13 @@ export default function DashMapTif({
     setTimeSeries,
     setSelectedFeature
 }) {
+    console.log("\n=== DashMapTif Render ===");
+    console.log("[DashMapTif] Props received:");
+    console.log("  - data:", data);
+    console.log("  - options:", options);
+    console.log("  - selectedDate:", selectedDate);
+    console.log("  - selectedFeature:", selectedFeature);
+
     // State for controlling warning visibility
     const [showWarnings, setShowWarnings] = useState(true);
 
@@ -31,6 +38,7 @@ export default function DashMapTif({
     //     };
     // }
     if (data === null) {
+        console.log("[DashMapTif] ⚠️ Data is null, using fallback");
         data = {
             url: "no_data",
             datatype: "geojson",
@@ -40,8 +48,11 @@ export default function DashMapTif({
     }
 
     useEffect(() => {
-        console.log("Received data in DashMapTif:", data);
-        console.log("Selected date in DashMapTif:", selectedDate);
+        console.log("\n=== DashMapTif Data Update ===");
+        console.log("[DashMapTif] Data changed:", data);
+        console.log("[DashMapTif] Data type:", data?.datatype);
+        console.log("[DashMapTif] Selected date:", selectedDate);
+        console.log("=== End DashMapTif Data Update ===\n");
     }, [data, selectedDate]);
 
     // Style function for GeoJSON features
@@ -137,25 +148,31 @@ export default function DashMapTif({
             
             {/* Render the appropriate layer based on data type */}
             {data.datatype === "geojson" && (
-                <GeojsonLayer
-                    data_url={data}
-                    options={options}
-                    selectedDate={selectedDate}
-                    selectedFeature={selectedFeature}
-                    setSelectedProvince={setSelectedProvince}
-                    setTimeSeries={setTimeSeries}
-                    setSelectedFeature={setSelectedFeature}
-                    showWarnings={showWarnings}
-                />
+                <>
+                    {console.log("[DashMapTif] 🗺️ Rendering GeoJSON layer")}
+                    <GeojsonLayer
+                        data_url={data}
+                        options={options}
+                        selectedDate={selectedDate}
+                        selectedFeature={selectedFeature}
+                        setSelectedProvince={setSelectedProvince}
+                        setTimeSeries={setTimeSeries}
+                        setSelectedFeature={setSelectedFeature}
+                        showWarnings={showWarnings}
+                    />
+                </>
             )}
-            
+
             {data.datatype === "geotiff" && (
-                <GeoTiffLayer 
-                    data_url={data} 
-                    selectedDate={selectedDate}
-                    options={options}
-                    showWarnings={showWarnings}
-                />
+                <>
+                    {console.log("[DashMapTif] 🗺️ Rendering GeoTIFF layer")}
+                    <GeoTiffLayer
+                        data_url={data}
+                        selectedDate={selectedDate}
+                        options={options}
+                        showWarnings={showWarnings}
+                    />
+                </>
             )}
             
             {/* Info Control for displaying details */}

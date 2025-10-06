@@ -11,8 +11,13 @@ export default function handler(req, res) {
         selectedDate = "2010"
     } = req.query;
 
+    console.log("\n=== get_data API Request ===");
+    console.log("Query parameters:", req.query);
+    console.log("Parsed:", { region, varType, adminLevel, dateType, overview, selectedDate });
+
     let fileName;
     const overviewDir = overview === "hist" ? "Hist" : "Forecast"; // 映射小写 -> 首字母大写
+    console.log("Overview directory:", overviewDir);
 
     function getFileName(
         overview,
@@ -259,6 +264,7 @@ export default function handler(req, res) {
         region,
         selectedDate
     );
+    console.log("📁 Generated filename:", fileName);
 
     let directory;
 
@@ -370,125 +376,14 @@ export default function handler(req, res) {
     //   });
     // }
 
-    // ******************* OLD DIRECTORY DETECT LOGIC ***************************//
-    if (varType === "Prcp" && adminLevel === "Grid") {
-        if (overview == "hist") {
-            directory = path.join(
-                "ERA5",
-                varType,
-                overviewDir,
-                adminLevel,
-                dateType
-            );
-        } else {
-            directory = path.join(
-                "ECMWF",
-                varType,
-                overviewDir,
-                adminLevel,
-                dateType
-            );
-        }
-    } else if (varType === "Temp" && adminLevel === "Grid") {
-        if (overview == "hist") {
-            directory = path.join(
-                "ERA5",
-                varType,
-                overviewDir,
-                adminLevel,
-                dateType
-            );
-        } else {
-            directory = path.join(
-                "ECMWF",
-                varType,
-                overviewDir,
-                adminLevel,
-                dateType
-            );
-        }
-    } else if (varType.startsWith("SPI") && overview === "forecast") {
-        directory = path.join(
-            "ECMWF",
-            varType,
-            overviewDir,
-            adminLevel,
-            dateType
-        );
-    } else if (varType === "Yield" && adminLevel === "Grid") {
-        directory = "yield_grid"; //Yield raster forecast has its own directory
-    } else if (varType.startsWith("SPI") && overview === "hist") {
-        directory = path.join(
-            "ERA5",
-            varType,
-            overviewDir,
-            adminLevel,
-            dateType
-        );
-    } else if (
-        varType.startsWith("SPI") &&
-        overview === "hist" &&
-        (adminLevel === "Prov") | (adminLevel === "Country") &&
-        dateType === "Monthly"
-    ) {
-        directory = path.join(varType, overviewDir, adminLevel, dateType);
-    }
+    // ******************* SIMPLIFIED DIRECTORY LOGIC FOR ERA5 TEST DATA ***************************//
+    // Unified directory structure: ERA5/{varType}/{Overview}/{AdminLevel}/{TimeType}/
+    // This matches the actual test data structure in data/ERA5/SPI1/{Forecast|Hist}/{Country|Prov|Grid}/{Monthly|Yearly}/
 
-    // else if (
-    //     varType.startsWith("SPI") &&
-    //     adminLevel === "Grid" &&
-    //     dateType === "Monthly"
-    // ) {
-    //     directory = path.join(varType, overviewDir, adminLevel, dateType);
-    // } else if (
-    //     varType.startsWith("SPI") &&
-    //     adminLevel === "Grid" &&
-    //     dateType === "Yearly"
-    // ) {
-    //     directory = path.join(varType, overviewDir, adminLevel, dateType);
-    // }
-    else if (varType.startsWith("SPI") && adminLevel === "Grid") {
-        directory = "SPI_grid"; //SPI raster data has its own directory
-    } else if (
-        varType.startsWith("SPI") &&
-        adminLevel === "Prov" &&
-        overview === "forecast"
-    ) {
-        directory = path.join(varType, overviewDir, adminLevel, dateType); //SPI prov forecast has its own directory
-        // directory = "SPI_prov_forecast"; //SPI prov forecast has its own directory
-    } else if (varType.startsWith("SPI") && adminLevel !== "Grid") {
-        directory = "SPI_json"; //SPI json has its own directory
-    } else if (
-        varType === "Yield" &&
-        overview === "forecast" &&
-        adminLevel !== "Grid"
-    ) {
-        directory = "yield_json_forecast";
-    } else if (overview === "forecast" && varType === "Prcp") {
-        // directory = "Precipitation_forecast";
-        directory = path.join(
-            "ECMWF",
-            varType,
-            overviewDir,
-            adminLevel,
-            dateType
-        );
-    } else if (overview === "forecast" && varType === "Temp") {
-        // directory = "Temperature_forecast";
-        directory = path.join(
-            "ECMWF",
-            varType,
-            overviewDir,
-            adminLevel,
-            dateType
-        );
-    } else if (varType === "Production") {
-        directory = path.join(varType, overviewDir, adminLevel, dateType);
-    } else if (varType === "Area") {
-        directory = path.join(varType, overviewDir, adminLevel, dateType);
-    } else if (varType === "yieldAnom") {
-        directory = path.join(varType, overviewDir, adminLevel, dateType);
-    } else if (varType === "smpct1") {
+    console.log("🔍 Determining directory path...");
+
+    // For ERA5 test data (SPI indices), use simplified structure
+    if (varType.startsWith("SPI") || varType === "Prcp" || varType === "Temp" || varType === "smpct1") {
         directory = path.join(
             "ERA5",
             varType,
@@ -496,8 +391,25 @@ export default function handler(req, res) {
             adminLevel,
             dateType
         );
+        console.log("  → Using ERA5 structure:", directory);
     }
-    // ******************* OLD DIRECTORY DETECT LOGIC ***************************//
+    // For other variable types (Yield, Production, Area, etc.), keep legacy structure
+    else if (varType === "Yield" && adminLevel === "Grid") {
+        directory = "yield_grid";
+        console.log("  → Using legacy Yield Grid directory:", directory);
+    } else if (varType === "Yield" && overview === "forecast" && adminLevel !== "Grid") {
+        directory = "yield_json_forecast";
+        console.log("  → Using legacy Yield Forecast directory:", directory);
+    } else if (varType === "Production" || varType === "Area" || varType === "yieldAnom") {
+        directory = path.join(varType, overviewDir, adminLevel, dateType);
+        console.log("  → Using standard structure:", directory);
+    } else {
+        // Default fallback
+        directory = path.join(varType, overviewDir, adminLevel, dateType);
+        console.log("  → Using default structure:", directory);
+    }
+    // ******************* END SIMPLIFIED DIRECTORY LOGIC ***************************//
+    console.log("📂 Determined directory:", directory);
 
     // **security check**：防止路径遍历攻击
 
@@ -514,21 +426,29 @@ export default function handler(req, res) {
         ? path.join(basePath, directory, safeFileName) // `/data/dir1/data.json`
         : path.join(basePath, safeFileName); // `/data/data.json`
 
+    console.log("🔍 Full file path:", filePath);
+    console.log("📍 Base path:", basePath);
+
     // **security check**：ensure safe directory access
     if (!filePath.startsWith(basePath)) {
+        console.error("❌ Security check failed: Path traversal attempt");
         return res.status(403).json({ error: "Forbidden access" });
     }
+    console.log("✅ Security check passed");
 
     // 检查文件是否存在
     if (!fs.existsSync(filePath)) {
+        console.error("❌ File not found:", filePath);
         return res
             .status(400)
             .json({ error: `Data file not found: ${filePath}` });
     }
+    console.log("✅ File exists");
 
     // 读取文件内容
 
     if (adminLevel === "Grid") {
+        console.log("📤 Serving GeoTIFF file (binary stream)");
         try {
             // Serve the file as raw binary data
             res.setHeader("Content-Type", "application/octet-stream");
@@ -538,16 +458,29 @@ export default function handler(req, res) {
             );
             const stream = fs.createReadStream(filePath);
             stream.pipe(res); // Stream the raw binary file to the frontend
+            console.log("✅ GeoTIFF stream started");
         } catch (error) {
-            console.error("Error reading file:", error);
+            console.error("❌ Error streaming GeoTIFF:", error);
             res.status(500).json({ error: "Failed to serve the GeoTIFF file" });
         }
     } else {
+        console.log("📤 Serving GeoJSON file");
         fs.readFile(filePath, "utf8", (err, data) => {
             if (err) {
-                return res.status(500).json({ error: "Failed to read file" });
+                console.error("❌ Error reading GeoJSON file:", err);
+                return res.status(500).json({ error: "Failed to read file", details: err.message });
             }
-            res.status(200).json(JSON.parse(data)); // 返回 JSON 数据
+            console.log("✅ GeoJSON file read successfully");
+            try {
+                const jsonData = JSON.parse(data);
+                console.log("✅ JSON parsed successfully");
+                console.log("📊 Features count:", jsonData.features ? jsonData.features.length : "N/A");
+                console.log("=== End of get_data API Request ===\n");
+                res.status(200).json(jsonData); // 返回 JSON 数据
+            } catch (parseError) {
+                console.error("❌ JSON parse error:", parseError);
+                res.status(500).json({ error: "Failed to parse JSON", details: parseError.message });
+            }
         });
     }
 }

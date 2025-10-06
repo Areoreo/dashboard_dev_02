@@ -1,0 +1,166 @@
+/**
+ * Responsive Navbar Component Styles
+ * To be added to /styles/core/components/_responsive-navbar.scss
+ */
+
+ @layer components {
+    .dash-top-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0.5rem;
+      z-index: 1099;
+      
+      @media (max-width: $sc-width-threshold) {
+        padding: 0 10px;
+        justify-content: space-between;
+      }
+      
+      .dash-top-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        
+        @media (max-width: $sc-width-threshold) {
+          width: 100%;
+          justify-content: space-between;
+        }
+      }
+      
+      .header-logo--container {
+        @media (max-width: $sc-width-threshold) {
+          max-width: 150px;
+        }
+      }
+      
+      .dash-top-buttons {
+        height: 100%;
+        
+        @media (max-width: $sc-width-threshold) {
+          display: none;
+        }
+      }
+      
+      .dash-top-button, .dash-top-button-red {
+        padding: 10px 12px;
+        border: none;
+        background-color: #fff;
+        cursor: pointer;
+        transition: background 0.3s, transform 0.2s;
+        
+        &:hover {
+          background-color: #ddd;
+        }
+        
+        &.active {
+          background-color: #448457;
+          color: white;
+          font-weight: bold;
+        }
+        
+        @media (max-width: $sc-width-threshold) {
+          padding: 8px 10px;
+          font-size: 14px;
+        }
+      }
+      
+      .dash-top-button-red {
+        &.active {
+          background-color: #b02b38;
+        }
+      }
+      
+      .dash-top-language {
+        position: relative;
+        
+        @media (max-width: $sc-width-threshold) {
+          display: none;
+        }
+      }
+      
+      // Mobile menu button
+      .mobile-menu-button {
+        display: none;
+        
+        @media (max-width: $sc-width-threshold) {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          background: none;
+          border: none;
+          color: #333;
+          
+          &:focus {
+            outline: none;
+          }
+        }
+      }
+      
+      // Mobile menu container
+      .mobile-menu-container {
+        
+        @media (max-width: $sc-width-threshold) {
+          display: block;
+          position: absolute;
+          top: 70px;
+          left: 0;
+          width: 100%;
+          background-color: white;
+          border-bottom: 1px solid #ddd;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          z-index: 1100;
+          padding: 15px; /* Start with no padding */
+          max-height: 80vh; /* Start with no height */
+          overflow-y: auto; /* Hide overflow */
+          // transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out; /* Add transition */
+
+          transition: all 0.2s ease-in-out;
+          transform: translateY(-70px);
+          opacity: 0;
+          max-height: 0;
+        
+          &.open {
+            transform: translateY(0);
+            opacity: 1;
+            max-height: 80vh; /* Start with no height */
+            overflow-y: auto; /* Hide overflow */
+          }
+
+          h3 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+          }
+          
+          button {
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+            
+            &.bg-blue-500 {
+              background-color: #448457;
+            }
+            
+            &.bg-red-600 {
+              background-color: #b02b38;
+            }
+            
+            &.bg-gray-700 {
+              background-color: #2b6cb0;
+            }
+            
+            &.bg-gray-100 {
+              background-color: #f3f4f6;
+            }
+          }
+        }
+      }
+    }
+  }

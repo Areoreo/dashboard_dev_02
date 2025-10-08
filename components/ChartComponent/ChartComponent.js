@@ -243,12 +243,16 @@ import React, { useEffect, useRef, useState } from "react";
 import Chart from "chart.js/auto";
 import "chartjs-adapter-date-fns"; // Required for proper time-scale handling
 
-// Import modular utilities
+// Import simplified time series processor
 import {
-    processSelectedFeature,
-    getYearOptions,
-    filterDataByYearRange
-} from "./ChartDataProcessor";
+    extractTimeSeries,
+    detectDataType,
+    formatDate,
+    getYearRange,
+    filterByYearRange
+} from "@utils/timeSeriesProcessor";
+
+// Import existing chart renderers (keep using these)
 import { createTimeSeriesChart, createEnsembleChart } from "./ChartRenderers";
 import { downloadCSV, downloadImage } from "./ChartExportUtils";
 import { getChartTitle } from "./ChartComponentUtils";
@@ -257,82 +261,69 @@ export const ChartComponent = ({ selectedFeature, options }) => {
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
 
-    // For date filtering and range selection
+    // Chart state
     const [startYear, setStartYear] = useState(null);
     const [endYear, setEndYear] = useState(null);
-    const [data, setData] = useState([]);
+    const [timeSeries, setTimeSeries] = useState([]);
     const [filteredData, setFilteredData] = useState([]);
-    const [processedData, setProcessedData] = useState([]);
     const [dataReady, setDataReady] = useState(false);
     const [showDownloadOptions, setShowDownloadOptions] = useState(false);
-    const [chartType, setChartType] = useState("standard"); // standard, ensemble, timeSeries, or ensembleWithStats
-    const [hasBuiltInStats, setHasBuiltInStats] = useState(false); // Store built-in stats detection result
+    const [chartType, setChartType] = useState("standard");
 
-    // Check for built-in statistics very first using original raw selectedFeature data
+    // Process selectedFeature using simplified processor
     useEffect(() => {
-        console.log("selectedFeature properties:", selectedFeature.properties);
+        console.log("\n=== ChartComponent: Processing Feature ===");
+        console.log("[ChartComponent] selectedFeature:", selectedFeature);
+
         if (!selectedFeature || !selectedFeature.properties) {
-            setHasBuiltInStats(false);
-            return;
-        }
-
-        const properties = selectedFeature.properties;
-        const keys = Object.keys(properties);
-
-        // Look for keys with _min, _max, or _mean suffixes
-        const hasStatKeys = keys.some(
-            (key) =>
-                key.includes("_min") ||
-                key.includes("_max") ||
-                key.includes("_mean")
-        );
-
-        console.log("Built-in stats detection:", hasStatKeys);
-        console.log("Sample properties keys:", keys.slice(0, 10));
-        setHasBuiltInStats(hasStatKeys);
-    }, [selectedFeature]);
-
-    // Process selectedFeature when it changes or hasBuiltInStats is determined
-    useEffect(() => {
-        if (!selectedFeature || !selectedFeature.properties) {
-            setData([]);
+            console.log("[ChartComponent] ⚠️ No feature selected");
+            setTimeSeries([]);
             setDataReady(false);
             return;
         }
 
-        console.log("Processing selectedFeature:", selectedFeature);
-        console.log("hasBuiltInStats:", hasBuiltInStats);
+        // Extract time series from flat properties using simplified processor
+        const extracted = extractTimeSeries(selectedFeature.properties);
+        console.log("[ChartComponent] ✅ Extracted time series:", extracted);
+        console.log("[ChartComponent] Time series count:", extracted.length);
 
-        // Process selectedFeature to extract time series data
-        processSelectedFeature(
-            selectedFeature,
-            options,
-            setChartType,
-            setProcessedData,
-            setDataReady,
-            setStartYear,
-            setEndYear,
-            hasBuiltInStats
-        );
-    }, [selectedFeature, options, hasBuiltInStats]);
+        // Detect data type
+        const dataType = detectDataType(extracted);
+        console.log("[ChartComponent] Detected data type:", dataType);
 
-    // Filter data when year range or processed data changes
+        // Map data type to chart type
+        const chartTypeMapping = {
+            'ensemble': 'ensembleWithStats',
+            'monthly': 'timeSeries',
+            'yearly': 'standard',
+            'empty': 'standard'
+        };
+        const mappedChartType = chartTypeMapping[dataType] || 'standard';
+        setChartType(mappedChartType);
+        console.log("[ChartComponent] Chart type:", mappedChartType);
+
+        // Get year range
+        const { startYear: minYear, endYear: maxYear } = getYearRange(extracted);
+        setStartYear(minYear);
+        setEndYear(maxYear);
+        console.log("[ChartComponent] Year range:", minYear, "-", maxYear);
+
+        // Set time series data
+        setTimeSeries(extracted);
+        setDataReady(true);
+        console.log("=== End ChartComponent Processing ===\n");
+    }, [selectedFeature, options]);
+
+    // Filter data by year range using simplified processor
     useEffect(() => {
-        if (
-            !processedData ||
-            processedData.length === 0 ||
-            !startYear ||
-            !endYear
-        )
+        if (!timeSeries || timeSeries.length === 0 || !startYear || !endYear) {
             return;
+        }
 
-        const filtered = filterDataByYearRange(
-            processedData,
-            startYear,
-            endYear
-        );
+        const filtered = filterByYearRange(timeSeries, startYear, endYear);
+        console.log("[ChartComponent] Filtered data:", filtered.length, "entries");
         setFilteredData(filtered);
-    }, [processedData, startYear, endYear]);
+    }, [timeSeries, startYear, endYear]);
 
     // Update chart when filtered data changes
     useEffect(() => {
@@ -351,7 +342,13 @@ export const ChartComponent = ({ selectedFeature, options }) => {
 
         const ctx = chartRef.current.getContext("2d");
 
-        // Create chart based on detected chart type and pass hasBuiltInStats
+        // Detect if data has built-in stats (mean, min, max)
+        const hasBuiltInStats = filteredData.length > 0 &&
+            filteredData[0].mean !== null &&
+            filteredData[0].min !== null &&
+            filteredData[0].max !== null;
+
+        // Create chart based on detected chart type
         if (chartType === "ensemble" || chartType === "ensembleWithStats") {
             createEnsembleChart(
                 ctx,
@@ -376,13 +373,13 @@ export const ChartComponent = ({ selectedFeature, options }) => {
         if (
             !startYear ||
             !endYear ||
-            !processedData ||
-            processedData.length === 0
+            !timeSeries ||
+            timeSeries.length === 0
         )
             return;
 
-        const filtered = filterDataByYearRange(
-            processedData,
+        const filtered = filterByYearRange(
+            timeSeries,
             startYear,
             endYear
         );
@@ -391,12 +388,27 @@ export const ChartComponent = ({ selectedFeature, options }) => {
 
     // Handle download button options
     const handleDownload = (format) => {
+        // Detect if data has built-in stats for CSV export
+        const hasBuiltInStats = filteredData.length > 0 &&
+            filteredData[0].mean !== null &&
+            filteredData[0].min !== null &&
+            filteredData[0].max !== null;
+
         if (format === "csv") {
             downloadCSV(filteredData, startYear, endYear, hasBuiltInStats);
         } else {
             downloadImage(chartRef, startYear, endYear, format);
         }
         setShowDownloadOptions(false); // Hide dropdown after selection
+    };
+
+    // Get year options from time series for dropdowns
+    const getYearOptions = () => {
+        if (!timeSeries || timeSeries.length === 0) {
+            return [];
+        }
+        const years = timeSeries.map(entry => entry.year);
+        return [...new Set(years)].sort();
     };
 
     return (
@@ -416,7 +428,7 @@ export const ChartComponent = ({ selectedFeature, options }) => {
                                         }
                                         className="year-select"
                                     >
-                                        {getYearOptions(processedData).map(
+                                        {getYearOptions().map(
                                             (year) => (
                                                 <option
                                                     key={`start-${year}`}
@@ -437,7 +449,7 @@ export const ChartComponent = ({ selectedFeature, options }) => {
                                         }
                                         className="year-select"
                                     >
-                                        {getYearOptions(processedData).map(
+                                        {getYearOptions().map(
                                             (year) => (
                                                 <option
                                                     key={`end-${year}`}

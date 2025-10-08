@@ -686,10 +686,7 @@ export default function Home() {
         date: currentDateInfo.dateString // Use dynamic date here
     });
 
-    const geoJsonLayerRef = useRef(null);
-    const [geojsonData, setGeojsonData] = useState(null);
-    const geoRasterLayerRef = useRef(null);
-    const [geoRasterData, setGeoRasterData] = useState(null);
+    // Removed redundant refs and states - data is now passed directly via mapData
     const [mapData, setMapData] = useState(null);
 
     const [selectedProvince, setSelectedProvince] = useState(null);
@@ -752,8 +749,6 @@ export default function Home() {
         setMapLoading(true);
 
         // Clear previous data immediately to prevent old data showing
-        setGeojsonData(null);
-        setGeoRasterData(null);
         setMapData(null);
         setSelectedProvince(null);
         setTimeSeries([]);
@@ -771,14 +766,13 @@ export default function Home() {
             }
 
             if (adminLevel === "Grid") {
-                console.log("Response URL:", response);
-                setGeoRasterData({
-                    data: await response.arrayBuffer(),
-                    url: response.url,
-                    datatype: "geotiff"
-                });
+                const arrayBuffer = await response.arrayBuffer();
+                console.log("Response URL:", response.url);
+                console.log("Fetched GeoTIFF data, size:", arrayBuffer.byteLength);
+
                 setMapData({
-                    url: response.url,
+                    data: arrayBuffer,  // Pass actual data, not just URL
+                    url: response.url,  // Keep URL for reference/debugging
                     datatype: "geotiff",
                     data_vartype: varType,
                     data_adminLevel: adminLevel,
@@ -788,11 +782,11 @@ export default function Home() {
                 setTimeSeries([]);
             } else {
                 const data = await response.json();
-                console.log("fetched geoJSON data:", data);
-                setGeojsonData(data);
+                console.log("Fetched geoJSON data:", data);
+
                 setMapData({
-                    data: data,
-                    url: response.url,
+                    data: data,  // Already passing actual data
+                    url: response.url,  // Keep URL for reference/debugging
                     datatype: "geojson",
                     data_vartype: varType,
                     data_adminLevel: adminLevel,
@@ -815,6 +809,7 @@ export default function Home() {
     }, [options, selectedDate]);
 
     // Format selected date for display
+    // NOTE: Don't update options.date here to avoid triggering duplicate fetchData calls
     useEffect(() => {
         let formattedDate = selectedYear;
         if (options.dateType === "Monthly") {
@@ -824,7 +819,6 @@ export default function Home() {
         }
 
         setSelectedDate(formattedDate);
-        setOptions((prev) => ({ ...prev, date: formattedDate }));
     }, [selectedYear, selectedMonth, selectedDay, options.dateType]);
 
     // Error message handling
@@ -872,7 +866,7 @@ export default function Home() {
         // Clear error message after a delay
         const timer = setTimeout(() => setErrorMessage(""), 5000);
         return () => clearTimeout(timer);
-    }, [options, geojsonData, geoRasterData, selectedDate]);
+    }, [options, selectedDate]);
 
     // Fetch data when options change
     useEffect(() => {
@@ -880,24 +874,8 @@ export default function Home() {
         fetchData();
     }, [fetchData]);
 
-    // Update GeoJSON layer
-    useEffect(() => {
-        console.log("geoJsonLayerRef.current:", geoJsonLayerRef.current);
-        if (geoJsonLayerRef.current && geojsonData) {
-            console.log("GeoJSONLayer instance:", geoJsonLayerRef.current);
-            geoJsonLayerRef.current.clearLayers();
-            geoJsonLayerRef.current.addData(geojsonData);
-        }
-    }, [geojsonData]);
-
-    // Update GeoTIFF layer
-    useEffect(() => {
-        if (geoRasterLayerRef.current && geoRasterData) {
-            console.log("GeoRasterLayer instance:", geoRasterLayerRef.current);
-            geoRasterLayerRef.current.clearLayers();
-            geoRasterLayerRef.current.addData(geoRasterData);
-        }
-    }, [geoRasterData]);
+    // Removed deprecated useEffects for geoJsonLayerRef and geoRasterLayerRef
+    // Data is now passed directly to child components via mapData
 
     // Update options function
     const updateOption = (key, value) => {

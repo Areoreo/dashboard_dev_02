@@ -186,21 +186,15 @@ export const GeojsonLayer = ({
             });
         };
 
-        // Fetch GeoJSON data
-        fetch(data_url.url)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(
-                        `Network response was not ok (${response.status})`
-                    );
-                }
-                return response.json();
-            })
-            .then((data) => {
-                if (!data || !data.features) {
-                    throw new Error("Invalid GeoJSON data received");
-                }
-                console.log("Received GeoJSON data:", data);
+        // Use passed GeoJSON data directly (no fetch needed - data already loaded by parent)
+        const processGeoJSONData = () => {
+            const data = data_url.data;
+
+            if (!data || !data.features) {
+                console.error("Invalid GeoJSON data received:", data);
+                return;
+            }
+            console.log("Processing GeoJSON data (no fetch - using passed data):", data);
 
                 // Process features to identify alerts based on thresholds
                 processAlerts(data.features, selectedDate);
@@ -306,10 +300,12 @@ export const GeojsonLayer = ({
                     }
                 });
 
-                geojsonLayer.addTo(map);
-                geoJsonLayerRef.current = geojsonLayer; // Store the new layer
-            })
-            .catch((error) => console.error("Error loading GeoJSON:", error));
+            geojsonLayer.addTo(map);
+            geoJsonLayerRef.current = geojsonLayer; // Store the new layer
+        };
+
+        // Execute data processing
+        processGeoJSONData();
 
         // Clean up on unmount
         return () => {
@@ -323,9 +319,8 @@ export const GeojsonLayer = ({
     }, [
         map,
         selectedDate,
-        data_url.url,
-        options,
-        selectedFeature,
+        data_url?.url,  // Use URL as stable identifier instead of data object
+        data_url?.data_vartype,  // Use primitive values for stable comparison
         setSelectedFeature,
         setSelectedProvince,
         setTimeSeries

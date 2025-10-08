@@ -4,20 +4,13 @@ import georaster from "georaster";
 import GeoRasterLayer from "georaster-layer-for-leaflet";
 import { getColor } from "@utils/colorUtils";
 
-export const GeoTiffLayer = ({ 
-    data_url, 
-    selectedDate, 
+export const GeoTiffLayer = ({
+    data_url,
+    selectedDate,
     options
 }) => {
     const map = useMap();
     const rasterLayerRef = useRef(null);
-    
-    // Create color options object for the getColor utility
-    const colorOptions = {
-        varType: data_url.data_vartype,
-        adminLevel: data_url.data_adminLevel,
-        dateType: data_url.data_dateType
-    };
 
     useEffect(() => {
         const loadGeoTIFFData = async () => {
@@ -27,9 +20,25 @@ export const GeoTiffLayer = ({
                     map.removeLayer(rasterLayerRef.current);
                     rasterLayerRef.current = null;
                 }
-                
-                const response = await fetch(data_url.url);
-                const arrayBuffer = await response.arrayBuffer();
+
+                // Check if data exists
+                if (!data_url || !data_url.data) {
+                    console.log("No GeoTIFF data available yet");
+                    return;
+                }
+
+                // Use passed arrayBuffer directly (no fetch needed - data already loaded by parent)
+                console.log("Processing GeoTIFF data (no fetch - using passed data)");
+                console.log("Data URL object:", data_url);
+                const arrayBuffer = data_url.data;
+
+                // Create color options inside useEffect to avoid dependency issues
+                const colorOptions = {
+                    varType: data_url.data_vartype,
+                    adminLevel: data_url.data_adminLevel,
+                    dateType: data_url.data_dateType
+                };
+
                 const parsedRaster = await georaster(arrayBuffer);
                 
                 // Determine which band to use
@@ -89,7 +98,7 @@ export const GeoTiffLayer = ({
                 map.removeLayer(rasterLayerRef.current);
             }
         };
-    }, [map, data_url.url, selectedDate, data_url.data_vartype, colorOptions, options]);
+    }, [map, data_url?.url, data_url?.data_vartype, selectedDate]);  // Use stable primitive values instead of entire object
 
     // Component no longer renders AlertMarkers
     return null;

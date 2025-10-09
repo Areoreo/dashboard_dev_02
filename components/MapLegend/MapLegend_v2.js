@@ -27,12 +27,23 @@ export const MapLegend = ({ options, selectedDate }) => {
         if (!selectedDate) return "Unknown Date";
 
         const year = selectedDate.slice(0, 4);
-        const month = selectedDate.length >= 6 ? selectedDate.slice(4, 6) : null;
+        const month =
+            selectedDate.length >= 6 ? selectedDate.slice(4, 6) : null;
         const day = selectedDate.length === 8 ? selectedDate.slice(6, 8) : null;
 
         const monthNames = [
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec"
         ];
         const monthFormatted = month ? monthNames[parseInt(month, 10) - 1] : "";
 
@@ -48,10 +59,12 @@ export const MapLegend = ({ options, selectedDate }) => {
     };
 
     // Determine if this is a discrete or continuous scale
-    const isDiscrete = colorConfig.colormapType === 'discrete' && colorConfig.legendLabels;
+    const isDiscrete =
+        colorConfig.colormapType === "discrete" && colorConfig.legendLabels;
 
     // Get display grades (use legendGradesDisplay if available, otherwise legendGrades)
-    const displayGrades = colorConfig.legendGradesDisplay || colorConfig.legendGrades;
+    const displayGrades =
+        colorConfig.legendGradesDisplay || colorConfig.legendGrades;
 
     return (
         <div
@@ -69,7 +82,9 @@ export const MapLegend = ({ options, selectedDate }) => {
                             {/* Color swatch */}
                             <div
                                 className="color-box"
-                                style={{ backgroundColor: colorConfig.colorSeries[i] }}
+                                style={{
+                                    backgroundColor: colorConfig.colorSeries[i]
+                                }}
                             ></div>
 
                             {/* Label text */}
@@ -116,10 +131,10 @@ export const MapLegend = ({ options, selectedDate }) => {
 function generateGradientColors(config) {
     const { colorType, colorSeries, hueRange, saturation, lightness } = config;
 
-    if (colorType === 'rgbColorCode' && colorSeries) {
+    if (colorType === "rgbColorCode" && colorSeries) {
         // Use colorSeries directly
         return colorSeries;
-    } else if (colorType === 'hueVector' && hueRange) {
+    } else if (colorType === "hueVector" && hueRange) {
         // Generate HSL colors from hue range
         const [minHue, maxHue] = hueRange;
         const steps = 5; // Number of gradient steps
@@ -141,27 +156,33 @@ function generateGradientColors(config) {
 // Tooltip texts for discrete legends (optional)
 const tooltipTexts = {
     // SPI tooltips
-    "D3": "Extreme Drought: Major crop losses, widespread water shortages.",
-    "D2": "Severe Drought: Likely crop loss, water restrictions may be needed.",
-    "D1": "Moderately Dry: Some damage to crops, low streamflow, water shortages possible.",
-    "D0": "Near Normal: Typical climate conditions, no significant anomalies.",
-    "W1": "Moderately Wet: Above-normal precipitation, beneficial for agriculture.",
-    "W2": "Severely Wet: High rainfall, increased runoff, risk of localized flooding.",
-    "W3": "Extremely Wet: Unusual flooding, excessive soil moisture, potential waterlogging.",
+    D3: "Extreme Drought: Major crop losses, widespread water shortages.",
+    D2: "Severe Drought: Likely crop loss, water restrictions may be needed.",
+    D1: "Moderately Dry: Some damage to crops, low streamflow, water shortages possible.",
+    D0: "Near Normal: Typical climate conditions, no significant anomalies.",
+    W1: "Moderately Wet: Above-normal precipitation, beneficial for agriculture.",
+    W2: "Severely Wet: High rainfall, increased runoff, risk of localized flooding.",
+    W3: "Extremely Wet: Unusual flooding, excessive soil moisture, potential waterlogging.",
 
     // Yield Anomaly tooltips
-    "Significantly Above Normal": "Crop yield is significantly above average, among the top 20% of all years.",
-    "Moderately Above Normal": "Crop yield is higher than usual, among the top 20% to 40% of all years.",
-    "Near Normal": "Crop yield is close to the historical average, within the middle 20% of all years.",
-    "Moderately Below Normal": "Crop yield is lower than average, among the bottom 20% to 40% of all years.",
-    "Significantly Below Normal": "Crop yield is significantly below average, among the lowest 20% of all years.",
+    "Significantly Above Normal":
+        "Crop yield is significantly above average, among the top 20% of all years.",
+    "Moderately Above Normal":
+        "Crop yield is higher than usual, among the top 20% to 40% of all years.",
+    "Near Normal":
+        "Crop yield is close to the historical average, within the middle 20% of all years.",
+    "Moderately Below Normal":
+        "Crop yield is lower than average, among the bottom 20% to 40% of all years.",
+    "Significantly Below Normal":
+        "Crop yield is significantly below average, among the lowest 20% of all years.",
 
     // Soil Moisture tooltips
-    "Extreme Drought": "Soil moisture at critical levels, severe agricultural impact.",
+    "Extreme Drought":
+        "Soil moisture at critical levels, severe agricultural impact.",
     "Severe Drought": "Very low soil moisture, crop stress expected.",
     "Moderate Drought": "Below-normal soil moisture, some crop impact.",
     "Abnormally Dry": "Slightly dry conditions, minimal impact.",
-    "Normal": "Normal soil moisture levels.",
+    Normal: "Normal soil moisture levels.",
     "Slightly Wet": "Above-normal soil moisture, beneficial for crops.",
     "Very Wet": "High soil moisture, potential for waterlogging."
 };

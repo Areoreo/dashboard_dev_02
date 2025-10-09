@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
 import * as L from "leaflet";
 import { AlertMarker } from "@components/AlertMarker";
-import { getColor, getThresholds, getFeatureCenter } from "@utils/colorUtils";
+import { getColor, getThresholds, getFeatureCenter } from "@utils/colorUtils_v2";
 
 export const GeojsonLayer = ({
     data_url,
@@ -205,7 +205,7 @@ export const GeojsonLayer = ({
                 }
 
                 const geojsonLayer = L.geoJSON(data, {
-                    style: styleGeoJSON,
+                    style: styleGeoJSON,  // SINGLE source of truth for styling
                     onEachFeature: function (feature, layer) {
                         // Get current feature value and name
                         const value =
@@ -213,13 +213,6 @@ export const GeojsonLayer = ({
                             feature.properties[`y${selectedDate}`] ??
                             0;
                         const name = feature.properties.name;
-
-                        // Create color options for tooltips
-                        const colorOptions = {
-                            varType: data_url.data_vartype,
-                            adminLevel: data_url.data_adminLevel,
-                            dateType: data_url.data_dateType
-                        };
 
                         // Bind tooltip
                         layer.bindTooltip(
@@ -229,73 +222,51 @@ export const GeojsonLayer = ({
                             { direction: "top", sticky: true }
                         );
 
-                        // Default style
-                        layer.setStyle({
-                            fillColor: getColor(value, colorOptions),
-                            color: "#666",
-                            weight: 2,
-                            fillOpacity: 0.7,
-                            dashArray: "3"
-                        });
+                        // === CONSOLIDATED EVENT HANDLERS (NO DUPLICATE STYLE APPLICATIONS) ===
 
-                        // Hover highlight
+                        // SINGLE mouseover handler
                         layer.on("mouseover", () => {
+                            // Update border style for highlight
                             layer.setStyle({
                                 color: "#EB5A3C",
                                 weight: 4
                             });
+
+                            // Update info control
+                            if (infoRef.current) {
+                                infoRef.current.update(
+                                    "<b>" + name + "</b><br>" +
+                                    (feature.properties.region || "")
+                                );
+                            }
+
+                            highlightRef.current = layer;
                         });
 
-                        // Mouse out event
+                        // SINGLE mouseout handler
                         layer.on("mouseout", () => {
+                            // Only reset if not selected
                             if (selectedFeature !== feature) {
-                                layer.setStyle(styleGeoJSON(feature));
+                                // Reset border style (don't recompute fill color)
+                                layer.setStyle({
+                                    color: "#666",
+                                    weight: 2
+                                });
                             }
+
+                            // Reset info control
+                            if (infoRef.current) {
+                                infoRef.current.update();
+                            }
+
+                            highlightRef.current = null;
                         });
 
                         // Click event
                         layer.on("click", () => {
                             removeBoundingBox();
-                            if (
-                                selectedFeature &&
-                                selectedFeature !== feature
-                            ) {
-                                resetFeatureStyle(layer, selectedFeature);
-                            }
                             handleFeatureClick(feature, layer);
                             handleProvClickToGenerateTimeSeries(feature);
-                        });
-
-                        // Update info control on mouseover
-                        layer.on("mouseover", function (e) {
-                            infoRef.current.update(
-                                "<b>" +
-                                    feature.properties.name +
-                                    "</b><br>" +
-                                    feature.properties.region
-                            );
-
-                            // Highlight the feature
-                            layer.setStyle(highlightStyle);
-                            highlightRef.current = layer;
-                        });
-
-                        // Reset info control on mouseout
-                        layer.on("mouseout", function (e) {
-                            if (infoRef.current) {
-                                infoRef.current.update();
-                            }
-
-                            // Reset the feature style
-                            if (
-                                highlightRef.current &&
-                                selectedFeature !== feature
-                            ) {
-                                highlightRef.current.setStyle(
-                                    styleGeoJSON(feature)
-                                );
-                                highlightRef.current = null;
-                            }
                         });
                     }
                 });

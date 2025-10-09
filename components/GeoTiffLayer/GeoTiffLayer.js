@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import georaster from "georaster";
 import GeoRasterLayer from "georaster-layer-for-leaflet";
-import { getColor } from "@utils/colorUtils";
+import { getColor } from "@utils/colorUtils_v2";
 
 export const GeoTiffLayer = ({
     data_url,

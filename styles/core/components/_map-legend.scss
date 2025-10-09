@@ -3,40 +3,231 @@
         position: absolute;
         left: 2%;
         bottom: 2%;
-        // transform: translateX(-50%);
 
-        background: rgba(255, 255, 255, 0.8);
-        padding: 10px;
-        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 12px;
+        border-radius: 8px;
         font-family: $body-font;
         font-size: $base-size;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         z-index: 1010;
+        max-width: 300px;
     }
 
     .legend-default {
         width: 20rem;
+        min-width: 200px;
     }
 
     .legend-title {
         font-family: $title-font;
-        font-size: $base-size;
+        font-size: calc($base-size * 1.1);
         font-weight: 700;
         color: #333;
         text-align: center;
-        margin-bottom: 5px;
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+        border-bottom: 2px solid #ddd;
+    }
+
+    /* === Continuous Legend (Gradient) === */
+    .legend-gradient-container {
+        width: 100%;
     }
 
     .legend-gradient {
         width: 100%;
         height: 20px;
-        border: 1px solid #000;
-        margin-bottom: 5px;
+        border: 1px solid #999;
+        border-radius: 3px;
+        margin-bottom: 6px;
     }
 
     .legend-labels {
         display: flex;
         justify-content: space-between;
-        font-size: $base-size;
+        font-size: calc($base-size * 0.9);
+        color: #555;
+
+        span {
+            text-align: center;
+            flex: 1;
+        }
+    }
+
+    /* === Discrete Legend (Items with Labels) === */
+    .legend-items {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    .color-box {
+        width: 24px;
+        height: 24px;
+        border: 1px solid #666;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+
+    .legend-text {
+        font-size: calc($base-size * 0.95);
+        color: #444;
+        flex-grow: 1;
+    }
+
+    /* === Tooltip for legend items === */
+    .legend-label-with-tooltip {
+        position: relative;
+        cursor: help;
+        border-bottom: 1px dotted #999;
+
+        .legend-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: calc($base-size * 0.85);
+            white-space: nowrap;
+            z-index: 1020;
+            margin-bottom: 8px;
+            transition: opacity 0.3s, visibility 0.3s;
+            pointer-events: none;
+
+            &::after {
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                border: 6px solid transparent;
+                border-top-color: rgba(0, 0, 0, 0.85);
+            }
+        }
+
+        &:hover .legend-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+    }
+
+    /* === Special class for SPI legend === */
+    .legend-SPI {
+        .legend-items {
+            gap: 4px;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+        }
+
+        .legend-text {
+            font-size: calc($base-size * 0.9);
+        }
+    }
+
+    /* === Special class for Soil Moisture legend === */
+    .legend-smpct1 {
+        .color-box {
+            width: 28px;
+            height: 28px;
+        }
+    }
+
+    /* === Special class for Yield Anomaly legend === */
+    .legend-yieldAnom {
+        .legend-items {
+            gap: 8px;
+        }
+
+        .legend-item {
+            padding: 6px 4px;
+        }
+    }
+
+    /* === Responsive adjustments === */
+    @media (max-width: 768px) {
+        .legend-container {
+            left: 1%;
+            bottom: 1%;
+            max-width: 250px;
+            padding: 10px;
+        }
+
+        .legend-title {
+            font-size: $base-size;
+            margin-bottom: 8px;
+        }
+
+        .legend-text {
+            font-size: calc($base-size * 0.85);
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+        }
     }
 }
+
+// @layer components {
+//     .legend-container {
+//         position: absolute;
+//         left: 2%;
+//         bottom: 2%;
+
+//         background: rgba(255, 255, 255, 0.8);
+//         padding: 10px;
+//         border-radius: 5px;
+//         font-family: $body-font;
+//         font-size: $base-size;
+//         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+//         z-index: 1010;
+//     }
+
+//     .legend-default {
+//         width: 20rem;
+//     }
+
+//     .legend-title {
+//         font-family: $title-font;
+//         font-size: $base-size;
+//         font-weight: 700;
+//         color: #333;
+//         text-align: center;
+//         margin-bottom: 5px;
+//     }
+
+//     .legend-gradient {
+//         width: 100%;
+//         height: 20px;
+//         border: 1px solid #000;
+//         margin-bottom: 5px;
+//     }
+
+//     .legend-labels {
+//         display: flex;
+//         justify-content: space-between;
+//         font-size: $base-size;
+//     }
+// }

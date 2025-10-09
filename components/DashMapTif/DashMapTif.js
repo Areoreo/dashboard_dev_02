@@ -7,7 +7,7 @@ import { MapLegend } from "@components/MapLegend";
 import { WarningControls } from "@components/WarningControls";
 import { GeojsonLayer } from "@components/GeojsonLayer";
 import { GeoTiffLayer } from "@components/GeoTiffLayer";
-import { getColor } from "@utils/colorUtils";
+import { getColor } from "@utils/colorUtils_v2";
 
 export default function DashMapTif({
     data,
@@ -29,14 +29,6 @@ export default function DashMapTif({
     const [showWarnings, setShowWarnings] = useState(true);
 
     // Check if data is null, if so, set the default URL
-    // if (data === null) {
-    //     data = {
-    //         url: "/api/get_Yield_Yearly_Country_SEA",
-    //         datatype: "geojson",
-    //         data_vartype: "Yield",
-    //         data_adminLevel: "Country"
-    //     };
-    // }
     if (data === null) {
         console.log("[DashMapTif] ⚠️ Data is null, using fallback");
         data = {
@@ -129,23 +121,23 @@ export default function DashMapTif({
             scrollWheelZoom={false}
             className="map-container"
         >
-            <MapLegend data={data} selectedDate={selectedDate} />
+            <MapLegend options={options} selectedDate={selectedDate} />
             <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>;'
             />
-            
+
             {/* Add Warning Controls */}
             {/* Still testing it. Turn off when we want to use a stable version. */}
             {/* <WarningControls showWarnings={showWarnings} setShowWarnings={setShowWarnings} /> */}
-            
+
             {options.adminLevel === "Grid" && filteredBoundaries && (
                 <GeoJSON
                     data={filteredBoundaries}
                     style={countryBoundaryStyle("#333")}
                 />
             )}
-            
+
             {/* Render the appropriate layer based on data type */}
             {data.datatype === "geojson" && (
                 <>
@@ -174,7 +166,7 @@ export default function DashMapTif({
                     />
                 </>
             )}
-            
+
             {/* Info Control for displaying details */}
             <InfoControl />
         </MapContainer>
@@ -201,7 +193,7 @@ function InfoControl() {
 
         info.addTo(map);
         infoRef.current = info;
-        
+
         return () => {
             if (infoRef.current) {
                 infoRef.current.remove();

@@ -586,14 +586,6 @@ const ChartComponent = dynamic(
     { ssr: false }
 );
 
-// const D3TimeSeriesChart = dynamic(
-//     () =>
-//         import("@components/D3TimeSeriesChart").then(
-//             (mod) => mod.D3TimeSeriesChart
-//         ),
-//     { ssr: false }
-// );
-
 /**
  * Get current date information for dynamic default setting
  * @returns {Object} Object containing current year, month, and formatted strings
@@ -768,11 +760,14 @@ export default function Home() {
             if (adminLevel === "Grid") {
                 const arrayBuffer = await response.arrayBuffer();
                 console.log("Response URL:", response.url);
-                console.log("Fetched GeoTIFF data, size:", arrayBuffer.byteLength);
+                console.log(
+                    "Fetched GeoTIFF data, size:",
+                    arrayBuffer.byteLength
+                );
 
                 setMapData({
-                    data: arrayBuffer,  // Pass actual data, not just URL
-                    url: response.url,  // Keep URL for reference/debugging
+                    data: arrayBuffer, // Pass actual data, not just URL
+                    url: response.url, // Keep URL for reference/debugging
                     datatype: "geotiff",
                     data_vartype: varType,
                     data_adminLevel: adminLevel,
@@ -785,8 +780,8 @@ export default function Home() {
                 console.log("Fetched geoJSON data:", data);
 
                 setMapData({
-                    data: data,  // Already passing actual data
-                    url: response.url,  // Keep URL for reference/debugging
+                    data: data, // Already passing actual data
+                    url: response.url, // Keep URL for reference/debugging
                     datatype: "geojson",
                     data_vartype: varType,
                     data_adminLevel: adminLevel,

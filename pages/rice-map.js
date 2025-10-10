@@ -580,9 +580,10 @@ import {
 } from "@components/LoadingSpinner";
 
 // Dynamic imports to avoid SSR issues
+// Use the refactored ChartComponent_v2
 const ChartComponent = dynamic(
     () =>
-        import("@components/ChartComponent").then((mod) => mod.ChartComponent),
+        import("@components/ChartComponent").then((mod) => mod.ChartComponent_v2),
     { ssr: false }
 );
 

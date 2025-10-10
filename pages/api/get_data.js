@@ -13,7 +13,14 @@ export default function handler(req, res) {
 
     console.log("\n=== get_data API Request ===");
     console.log("Query parameters:", req.query);
-    console.log("Parsed:", { region, varType, adminLevel, dateType, overview, selectedDate });
+    console.log("Parsed:", {
+        region,
+        varType,
+        adminLevel,
+        dateType,
+        overview,
+        selectedDate
+    });
 
     let fileName;
     const overviewDir = overview === "hist" ? "Hist" : "Forecast"; // 映射小写 -> 首字母大写
@@ -383,7 +390,12 @@ export default function handler(req, res) {
     console.log("🔍 Determining directory path...");
 
     // For ERA5 test data (SPI indices), use simplified structure
-    if (varType.startsWith("SPI") || varType === "Prcp" || varType === "Temp" || varType === "smpct1") {
+    if (
+        varType.startsWith("SPI") ||
+        varType === "Prcp" ||
+        varType === "Temp" ||
+        varType === "smpct1"
+    ) {
         directory = path.join(
             "ERA5",
             varType,
@@ -397,10 +409,18 @@ export default function handler(req, res) {
     else if (varType === "Yield" && adminLevel === "Grid") {
         directory = "yield_grid";
         console.log("  → Using legacy Yield Grid directory:", directory);
-    } else if (varType === "Yield" && overview === "forecast" && adminLevel !== "Grid") {
+    } else if (
+        varType === "Yield" &&
+        overview === "forecast" &&
+        adminLevel !== "Grid"
+    ) {
         directory = "yield_json_forecast";
         console.log("  → Using legacy Yield Forecast directory:", directory);
-    } else if (varType === "Production" || varType === "Area" || varType === "yieldAnom") {
+    } else if (
+        varType === "Production" ||
+        varType === "Area" ||
+        varType === "yieldAnom"
+    ) {
         directory = path.join(varType, overviewDir, adminLevel, dateType);
         console.log("  → Using standard structure:", directory);
     } else {
@@ -468,18 +488,27 @@ export default function handler(req, res) {
         fs.readFile(filePath, "utf8", (err, data) => {
             if (err) {
                 console.error("❌ Error reading GeoJSON file:", err);
-                return res.status(500).json({ error: "Failed to read file", details: err.message });
+                return res.status(500).json({
+                    error: "Failed to read file",
+                    details: err.message
+                });
             }
             console.log("✅ GeoJSON file read successfully");
             try {
                 const jsonData = JSON.parse(data);
                 console.log("✅ JSON parsed successfully");
-                console.log("📊 Features count:", jsonData.features ? jsonData.features.length : "N/A");
+                console.log(
+                    "📊 Features count:",
+                    jsonData.features ? jsonData.features.length : "N/A"
+                );
                 console.log("=== End of get_data API Request ===\n");
                 res.status(200).json(jsonData); // 返回 JSON 数据
             } catch (parseError) {
                 console.error("❌ JSON parse error:", parseError);
-                res.status(500).json({ error: "Failed to parse JSON", details: parseError.message });
+                res.status(500).json({
+                    error: "Failed to parse JSON",
+                    details: parseError.message
+                });
             }
         });
     }

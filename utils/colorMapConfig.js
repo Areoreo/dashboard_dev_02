@@ -18,20 +18,28 @@ export const COLOR_MAP_CONFIGS = {
     SPI: {
         minValue: -3,
         maxValue: 3,
-        colormapType: 'discrete',
-        colorType: 'rgbColorCode',
+        colormapType: "discrete",
+        colorType: "rgbColorCode",
         colorSeries: [
-            "#b22222",  // D3 - Extremely dry
-            "#d2691e",  // D2 - Severely dry
-            "#f5deb3",  // D1 - Moderately dry
-            "#EEE",     // D0 - Near normal
-            "#98fb98",  // W1 - Moderately wet
-            "#3cb371",  // W2 - Very wet
-            "#14713d"   // W3 - Extremely wet
+            "#b22222", // D3 - Extremely dry
+            "#d2691e", // D2 - Severely dry
+            "#f5deb3", // D1 - Moderately dry
+            "#EEE", // D0 - Near normal
+            "#98fb98", // W1 - Moderately wet
+            "#3cb371", // W2 - Very wet
+            "#14713d" // W3 - Extremely wet
         ],
         thresholds: [-2, -1.5, -1, 0, 1, 1.5, 2],
         legendGrades: [2, 1.5, 1, 0, -1, -1.5, -2],
-        legendLabels: ["W3", "W2", "W1", "D0", "D1", "D2", "D3"],
+        legendLabels: [
+            "Extremely Dry",
+            "Severely Dry",
+            "Moderately Dry",
+            "Near Normal",
+            "Moderately Wet",
+            "Very Wet",
+            "Extremely Wet"
+        ],
         title: "Drought Index",
         unit: "",
         className: "legend-SPI"
@@ -41,9 +49,9 @@ export const COLOR_MAP_CONFIGS = {
     PrcpGrid: {
         minValue: 0,
         maxValue: 1000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
-        hueRange: [200, 0],  // Blue to Red
+        colormapType: "continuous",
+        colorType: "hueVector",
+        hueRange: [200, 0], // Blue to Red
         saturation: 100,
         lightness: 50,
         legendGrades: [0, 200, 400, 600, 800, 1000],
@@ -54,8 +62,8 @@ export const COLOR_MAP_CONFIGS = {
     PrcpProv: {
         minValue: 0,
         maxValue: 3000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [200, 0],
         saturation: 100,
         lightness: 50,
@@ -67,8 +75,8 @@ export const COLOR_MAP_CONFIGS = {
     PrcpProvMonthly: {
         minValue: 0,
         maxValue: 500,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [200, 0],
         saturation: 100,
         lightness: 50,
@@ -80,8 +88,8 @@ export const COLOR_MAP_CONFIGS = {
     PrcpCountry: {
         minValue: 0,
         maxValue: 3000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [200, 0],
         saturation: 100,
         lightness: 50,
@@ -93,7 +101,7 @@ export const COLOR_MAP_CONFIGS = {
     PrcpCountryMonthly: {
         minValue: 0,
         maxValue: 500,
-        colormapType: 'hueVector',
+        colormapType: "hueVector",
         hueRange: [200, 0],
         saturation: 100,
         lightness: 50,
@@ -106,15 +114,15 @@ export const COLOR_MAP_CONFIGS = {
     Temp: {
         minValue: 10,
         maxValue: 35,
-        colormapType: 'continuous',
-        colorType: 'rgbColorCode',
+        colormapType: "continuous",
+        colorType: "rgbColorCode",
         colorSeries: [
-            "#08306B",  // 10°C - Dark Blue (Cold)
-            "#4292C6",  // 15°C - Light Blue (Cool)
-            "#41AB5D",  // 20°C - Green (Mild)
-            "#F7DC6F",  // 25°C - Yellow (Warm)
-            "#E67E22",  // 30°C - Orange (Hot)
-            "#C0392B"   // 35°C - Red (Very hot)
+            "#08306B", // 10°C - Dark Blue (Cold)
+            "#4292C6", // 15°C - Light Blue (Cool)
+            "#41AB5D", // 20°C - Green (Mild)
+            "#F7DC6F", // 25°C - Yellow (Warm)
+            "#E67E22", // 30°C - Orange (Hot)
+            "#C0392B" // 35°C - Red (Very hot)
         ],
         legendGrades: [10, 15, 20, 25, 30, 35],
         title: "Temperature (℃)",
@@ -125,17 +133,17 @@ export const COLOR_MAP_CONFIGS = {
     YieldGrid: {
         minValue: 1,
         maxValue: 5,
-        colormapType: 'continuous',
-        colorType: 'rgbColorCode',
+        colormapType: "continuous",
+        colorType: "rgbColorCode",
         colorSeries: [
-            "#F8FF96",  // Very light yellow-green
-            "#F0F09A",  // Light yellow-green
-            "#C9EC77",  // Yellow-green
-            "#addd8e",  // Light green
-            "#78c679",  // Medium green
-            "#41ab5d",  // Dark green
-            "#238443",  // Darker green
-            "#005a32"   // Darkest green
+            "#F8FF96", // Very light yellow-green
+            "#F0F09A", // Light yellow-green
+            "#C9EC77", // Yellow-green
+            "#addd8e", // Light green
+            "#78c679", // Medium green
+            "#41ab5d", // Dark green
+            "#238443", // Darker green
+            "#005a32" // Darkest green
         ],
         legendGrades: [1, 2, 3, 4, 5],
         title: "Yield (ton/ha)",
@@ -145,8 +153,8 @@ export const COLOR_MAP_CONFIGS = {
     YieldProv: {
         minValue: 4,
         maxValue: 7,
-        colormapType: 'continuous',
-        colorType: 'rgbColorCode',
+        colormapType: "continuous",
+        colorType: "rgbColorCode",
         colorSeries: [
             "#F8FF96",
             "#F0F09A",
@@ -165,8 +173,8 @@ export const COLOR_MAP_CONFIGS = {
     YieldCountry: {
         minValue: 4,
         maxValue: 7,
-        colormapType: 'continuous',
-        colorType: 'rgbColorCode',
+        colormapType: "continuous",
+        colorType: "rgbColorCode",
         colorSeries: [
             "#F8FF96",
             "#F0F09A",
@@ -186,9 +194,9 @@ export const COLOR_MAP_CONFIGS = {
     AreaGrid: {
         minValue: 0,
         maxValue: 10000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
-        hueRange: [40, 120],  // Orange to Green
+        colormapType: "continuous",
+        colorType: "hueVector",
+        hueRange: [40, 120], // Orange to Green
         saturation: 80,
         lightness: 50,
         legendGrades: [0, 2500, 5000, 7500, 10000],
@@ -199,13 +207,13 @@ export const COLOR_MAP_CONFIGS = {
     AreaProv: {
         minValue: 0,
         maxValue: 500000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [40, 120],
         saturation: 80,
         lightness: 50,
         legendGrades: [0, 125000, 250000, 375000, 500000],
-        legendGradesDisplay: [0, 100, 200, 300, 400, 500],  // Display in thousands
+        legendGradesDisplay: [0, 100, 200, 300, 400, 500], // Display in thousands
         title: "Rice Area (k ha)",
         unit: "ha"
     },
@@ -213,13 +221,13 @@ export const COLOR_MAP_CONFIGS = {
     AreaCountry: {
         minValue: 2000000,
         maxValue: 10000000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [40, 120],
         saturation: 80,
         lightness: 50,
         legendGrades: [2000000, 4000000, 5000000, 8000000, 10000000],
-        legendGradesDisplay: [2, 4, 5, 8, 10],  // Display in millions
+        legendGradesDisplay: [2, 4, 5, 8, 10], // Display in millions
         title: "Rice Area (million ha)",
         unit: "ha"
     },
@@ -228,8 +236,8 @@ export const COLOR_MAP_CONFIGS = {
     ProductionGrid: {
         minValue: 0,
         maxVal: 10000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [30, 120],
         saturation: 100,
         lightness: 40,
@@ -241,13 +249,13 @@ export const COLOR_MAP_CONFIGS = {
     ProductionProv: {
         minValue: 0,
         maxValue: 2000000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [30, 120],
         saturation: 100,
         lightness: 40,
         legendGrades: [0, 500000, 1000000, 1500000, 2000000],
-        legendGradesDisplay: [0, 0.5, 1, 1.5, 2],  // Display in millions
+        legendGradesDisplay: [0, 0.5, 1, 1.5, 2], // Display in millions
         title: "Production (million ton)",
         unit: "ton"
     },
@@ -255,13 +263,13 @@ export const COLOR_MAP_CONFIGS = {
     ProductionCountry: {
         minValue: 0,
         maxValue: 10000000,
-        colormapType: 'continuous',
-        colorType: 'hueVector',
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [30, 120],
         saturation: 100,
         lightness: 40,
         legendGrades: [0, 2500000, 5000000, 7500000, 10000000],
-        legendGradesDisplay: [0, 2.5, 5, 7.5, 10],  // Display in millions
+        legendGradesDisplay: [0, 2.5, 5, 7.5, 10], // Display in millions
         title: "Production (million ton)",
         unit: "ton"
     },
@@ -270,18 +278,18 @@ export const COLOR_MAP_CONFIGS = {
     smpct1: {
         minValue: 0,
         maxValue: 1,
-        colormapType: 'discrete',
-        colorType: 'rgbColorCode',
+        colormapType: "discrete",
+        colorType: "rgbColorCode",
         colorSeries: [
-            "#8c510a",  // D3/D4 - Extreme/Exceptional Drought
-            "#bf812d",  // D2 - Severe Drought
-            "#dfc27d",  // D1 - Moderate Drought
-            "#f6e8c3",  // D0 - Abnormally Dry
-            "#f5f5f5",  // No Drought (Normal)
-            "#c7eae5",  // Slightly Wet
-            "#80cdc1"   // Somewhat Wet
+            "#8c510a", // D3/D4 - Extreme/Exceptional Drought
+            "#bf812d", // D2 - Severe Drought
+            "#dfc27d", // D1 - Moderate Drought
+            "#f6e8c3", // D0 - Abnormally Dry
+            "#f5f5f5", // No Drought (Normal)
+            "#c7eae5", // Slightly Wet
+            "#80cdc1" // Somewhat Wet
         ],
-        thresholds: [0, 0.05, 0.10, 0.20, 0.30, 0.5, 0.7, 1.0],
+        thresholds: [0, 0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 1.0],
         legendGrades: [0, 25, 50, 75, 100],
         legendLabels: [
             "Extreme Drought",
@@ -301,16 +309,16 @@ export const COLOR_MAP_CONFIGS = {
     yieldAnom: {
         minValue: -5.0,
         maxValue: 5.0,
-        colormapType: 'discrete',
-        colorType: 'rgbColorCode',
+        colormapType: "discrete",
+        colorType: "rgbColorCode",
         colorSeries: [
-            "#a50026",  // Significantly Below Normal
-            "#f46d43",  // Moderately Below Normal
-            "#d9d9d9",  // Near Normal
-            "#74add1",  // Moderately Above Normal
-            "#1a9850"   // Significantly Above Normal
+            "#a50026", // Significantly Below Normal
+            "#f46d43", // Moderately Below Normal
+            "#d9d9d9", // Near Normal
+            "#74add1", // Moderately Above Normal
+            "#1a9850" // Significantly Above Normal
         ],
-        thresholds: [-5.0, -1.1990, -0.3995, 0.4001, 1.1987, 5.0],
+        thresholds: [-5.0, -1.199, -0.3995, 0.4001, 1.1987, 5.0],
         legendGrades: [1.5, 0.3, -0.3, -1.199, -5],
         legendLabels: [
             "Significantly Above Normal",
@@ -341,7 +349,9 @@ export function getColorMapKey(varType, adminLevel, dateType) {
         } else if (adminLevel === "Prov") {
             return dateType === "Monthly" ? "PrcpProvMonthly" : "PrcpProv";
         } else if (adminLevel === "Country") {
-            return dateType === "Monthly" ? "PrcpCountryMonthly" : "PrcpCountry";
+            return dateType === "Monthly"
+                ? "PrcpCountryMonthly"
+                : "PrcpCountry";
         }
     }
 

@@ -34,10 +34,9 @@
 
 // My Components Styles
 @import "core/components/variable-selector";
-@import "core/components/legend-spi";
+// @import "core/components/legend-spi";
 @import "core/components/map-legend";
 @import "core/components/date-selector";
-// @import "core/components/dash-top";  # after test, most functions are overode by _responsive.scss. Only 'language' is not handled in _responsive.scss
 @import "core/components/loading-spinner";
 @import "core/components/alerts";
 @import "core/components/chart-component";

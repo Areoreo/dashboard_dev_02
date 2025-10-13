@@ -463,6 +463,40 @@ import {
     createChartOptions
 } from "./ChartComponentUtils";
 
+/**
+ * Format date for tooltip based on dateType
+ * @param {Date|string} dateValue - Date value from chart
+ * @param {string} dateType - Type of date interval (Yearly, Monthly, Daily)
+ * @returns {string} Formatted date string
+ */
+const formatTooltipDate = (dateValue, dateType = "Yearly") => {
+    // Handle string input (for category scales)
+    if (typeof dateValue === 'string') {
+        return dateValue;
+    }
+
+    // Handle Date objects (for time scales)
+    if (dateValue instanceof Date) {
+        if (dateType === "Yearly") {
+            // Format: "1983"
+            return dateValue.getFullYear().toString();
+        } else if (dateType === "Monthly") {
+            // Format: "May, 1983"
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${monthNames[dateValue.getMonth()]}, ${dateValue.getFullYear()}`;
+        } else if (dateType === "Daily") {
+            // Format: "May 15, 1983"
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${monthNames[dateValue.getMonth()]} ${dateValue.getDate()}, ${dateValue.getFullYear()}`;
+        }
+    }
+
+    // Fallback
+    return dateValue.toString();
+};
+
 // Create a time series chart
 export const createTimeSeriesChart = (
     ctx,
@@ -549,48 +583,43 @@ export const createTimeSeriesChart = (
         false
     );
 
-    // Special handling for SPI values - set fixed y-axis scale
+    // Special handling for SPI values - auto y-axis scale with minimum range [-3, 3]
     if (options && options.varType && options.varType.startsWith("SPI")) {
         // Get min and max values from the data
         const values = sortedData
             .map((d) => d.value)
             .filter((v) => v !== null && v !== undefined);
-        const minValue = Math.min(...values);
-        const maxValue = Math.max(...values);
+        const dataMin = Math.min(...values);
+        const dataMax = Math.max(...values);
 
-        // Check if all values are within the range [-2, 2]
-        if (minValue >= -2 && maxValue <= 2) {
-            // If all values are within [-2, 2], use fixed scale
-            chartOptions.scales.y.min = -2;
-            chartOptions.scales.y.max = 2;
-        } else if (minValue >= -2 && maxValue > 2) {
-            // If all values are within [-2, 2], use fixed scale
-            chartOptions.scales.y.min = -2;
-        } else if (minValue < -2 && maxValue <= 2) {
-            // If all values are within [-2, 2], use fixed scale
-            chartOptions.scales.y.max = 2;
-        } else {
-            // If values exceed the range, use automatic scaling with padding
-            // No need to set min/max explicitly, Chart.js will auto-scale
-            // Just ensure we have some padding
-            chartOptions.scales.y.ticks = {
-                padding: 5
-            };
-        }
+        // Calculate display range with minimum of [-3, 3]
+        const displayMin = Math.min(dataMin, -3);
+        const displayMax = Math.max(dataMax, 3);
+
+        // Set y-axis range
+        chartOptions.scales.y.min = displayMin;
+        chartOptions.scales.y.max = displayMax;
+        chartOptions.scales.y.ticks = {
+            padding: 5
+        };
     }
 
-    // Add tooltip callback
+    // Add tooltip callback with dateType-aware formatting
     chartOptions.plugins.tooltip = {
         callbacks: {
             title: (tooltipItems) => {
                 const xValue = tooltipItems[0].parsed.x;
+                // Use dateType from options for formatting
+                const dateType = options?.dateType || "Yearly";
+
                 // Handle different x-value types
-                if (xValue instanceof Date) {
-                    return xValue.toLocaleDateString(undefined, {
-                        year: "numeric",
-                        month: "long"
-                    });
+                if (typeof xValue === 'number' && useTimeScale) {
+                    // x is timestamp for time scale
+                    const date = new Date(xValue);
+                    return formatTooltipDate(date, dateType);
                 }
+
+                // For category scale or string labels
                 return tooltipItems[0].label || `Date: ${xValue}`;
             },
             label: (tooltipItem) => {
@@ -782,27 +811,41 @@ const createEnsembleChartWithBuiltInStats = (
         true // This is an ensemble chart
     );
 
-    // Special handling for SPI values
+    // Special handling for SPI values - auto y-axis scale with minimum range [-3, 3]
     if (options && options.varType && options.varType.startsWith("SPI")) {
         const allValues = sortedData
             .flatMap((d) => [d.min, d.max, d.mean])
             .filter((v) => v !== null && v !== undefined);
-        const minValue = Math.min(...allValues);
-        const maxValue = Math.max(...allValues);
+        const dataMin = Math.min(...allValues);
+        const dataMax = Math.max(...allValues);
 
-        if (minValue >= -2 && maxValue <= 2) {
-            chartOptions.scales.y.min = -2;
-            chartOptions.scales.y.max = 2;
-        } else {
-            chartOptions.scales.y.ticks = { padding: 5 };
-        }
+        // Calculate display range with minimum of [-3, 3]
+        const displayMin = Math.min(dataMin, -3);
+        const displayMax = Math.max(dataMax, 3);
+
+        // Set y-axis range
+        chartOptions.scales.y.min = displayMin;
+        chartOptions.scales.y.max = displayMax;
+        chartOptions.scales.y.ticks = { padding: 5 };
     }
 
-    // Add enhanced tooltip
+    // Add enhanced tooltip with individual points for ensemble members and dateType-aware formatting
     chartOptions.plugins.tooltip = {
+        mode: 'point', // Show tooltip for individual points instead of all datasets at x-value
+        intersect: false, // Show tooltip when hovering near a line
         callbacks: {
             title: (tooltipItems) => {
-                return `Date: ${tooltipItems[0].label}`;
+                const xValue = tooltipItems[0].parsed.x;
+                const dateType = options?.dateType || "Monthly";
+
+                // Handle timestamp values
+                if (typeof xValue === 'number') {
+                    const date = new Date(xValue);
+                    return formatTooltipDate(date, dateType);
+                }
+
+                // Fallback to label
+                return tooltipItems[0].label;
             },
             label: (tooltipItem) => {
                 let value = tooltipItem.parsed.y.toFixed(2);
@@ -968,27 +1011,41 @@ const createLegacyEnsembleChart = (
         true
     );
 
-    // Special handling for SPI values
+    // Special handling for SPI values - auto y-axis scale with minimum range [-3, 3]
     if (options && options.varType && options.varType.startsWith("SPI")) {
         const allValues = filteredData
             .map((d) => d.value)
             .filter((v) => v !== null && v !== undefined);
-        const minValue = Math.min(...allValues);
-        const maxValue = Math.max(...allValues);
+        const dataMin = Math.min(...allValues);
+        const dataMax = Math.max(...allValues);
 
-        if (minValue >= -2 && maxValue <= 2) {
-            chartOptions.scales.y.min = -2;
-            chartOptions.scales.y.max = 2;
-        } else {
-            chartOptions.scales.y.ticks = { padding: 5 };
-        }
+        // Calculate display range with minimum of [-3, 3]
+        const displayMin = Math.min(dataMin, -3);
+        const displayMax = Math.max(dataMax, 3);
+
+        // Set y-axis range
+        chartOptions.scales.y.min = displayMin;
+        chartOptions.scales.y.max = displayMax;
+        chartOptions.scales.y.ticks = { padding: 5 };
     }
 
-    // Add tooltip
+    // Add tooltip with individual points for ensemble members and dateType-aware formatting
     chartOptions.plugins.tooltip = {
+        mode: 'point', // Show tooltip for individual points instead of all datasets at x-value
+        intersect: false, // Show tooltip when hovering near a line
         callbacks: {
             title: (tooltipItems) => {
-                return `Date: ${tooltipItems[0].label}`;
+                const xValue = tooltipItems[0].parsed.x;
+                const dateType = options?.dateType || "Monthly";
+
+                // Handle timestamp values
+                if (typeof xValue === 'number') {
+                    const date = new Date(xValue);
+                    return formatTooltipDate(date, dateType);
+                }
+
+                // Fallback to label
+                return tooltipItems[0].label;
             },
             label: (tooltipItem) => {
                 let value = tooltipItem.parsed.y.toFixed(2);

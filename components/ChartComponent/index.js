@@ -9,13 +9,30 @@
 
 // Refactored Components (v2) - Recommended for new code
 export { ChartComponent_v2 } from "./ChartComponent_v2";
-export { processFeatureForChart, filterChartData, getAvailableYears } from "./ChartDataProcessor_v2";
-export { createChart, createTimeSeriesChart, createEnsembleChart } from "./ChartRenderers_v2";
-export { processTimeSeriesData, getYearRange, filterSeriesByYearRange } from "./TimeSeriesProcessor";
+export {
+    processFeatureForChart,
+    filterChartData,
+    getAvailableYears
+} from "./ChartDataProcessor_v2";
+export {
+    createChart,
+    createTimeSeriesChart,
+    createEnsembleChart
+} from "./ChartRenderers_v2";
+export {
+    processTimeSeriesData,
+    getYearRange,
+    filterSeriesByYearRange
+} from "./TimeSeriesProcessor";
 
 // Legacy Components - Preserved for backward compatibility
 export * from "./ChartComponent";
-export { processData, processHistoricalData, getYearOptions, filterDataByYearRange } from "./ChartDataProcessor";
+export {
+    processData,
+    processHistoricalData,
+    getYearOptions,
+    filterDataByYearRange
+} from "./ChartDataProcessor";
 
 // Shared Utilities
 export { downloadCSV, downloadImage } from "./ChartExportUtils";

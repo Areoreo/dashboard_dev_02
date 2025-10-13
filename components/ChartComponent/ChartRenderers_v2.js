@@ -8,6 +8,41 @@ import Chart from "chart.js/auto";
 import "chartjs-adapter-date-fns";
 
 /**
+ * Format date for tooltip based on dateType
+ * @param {Date|number} dateValue - Date value from chart (can be Date object or timestamp)
+ * @param {string} dateType - Type of date interval (Yearly, Monthly, Daily)
+ * @returns {string} Formatted date string
+ */
+const formatTooltipDate = (dateValue, dateType = "Yearly") => {
+    // Convert timestamp to Date if needed
+    let date = dateValue;
+    if (typeof dateValue === 'number') {
+        date = new Date(dateValue);
+    }
+
+    // Handle Date objects
+    if (date instanceof Date && !isNaN(date)) {
+        if (dateType === "Yearly") {
+            // Format: "1983"
+            return date.getFullYear().toString();
+        } else if (dateType === "Monthly") {
+            // Format: "May, 1983"
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${monthNames[date.getMonth()]}, ${date.getFullYear()}`;
+        } else if (dateType === "Daily") {
+            // Format: "May 15, 1983"
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+        }
+    }
+
+    // Fallback
+    return dateValue.toString();
+};
+
+/**
  * Create a chart from processed series data
  *
  * @param {HTMLCanvasElement} canvas - Canvas element
@@ -66,8 +101,13 @@ export function createTimeSeriesChart(ctx, series, config, chartInstanceRef) {
         })
         .filter(Boolean);
 
-    // Create chart options
-    const chartOptions = createChartOptions(config, false);
+    // Extract all data values for y-axis scaling
+    const allDataValues = series.flatMap(s =>
+        s.timeSeriesData?.map(entry => entry.value).filter(v => v !== null && v !== undefined) || []
+    );
+
+    // Create chart options with data values
+    const chartOptions = createChartOptions({...config, dataValues: allDataValues}, false);
 
     // Add background plugin for SPI shading
     const backgroundPlugin = createBackgroundPlugin(config);
@@ -169,8 +209,13 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
         });
     }
 
-    // Create chart options
-    const chartOptions = createChartOptions(config, true);
+    // Extract all data values for y-axis scaling (from all series)
+    const allDataValues = series.flatMap(s =>
+        s.timeSeriesData?.map(entry => entry.value).filter(v => v !== null && v !== undefined) || []
+    );
+
+    // Create chart options with data values
+    const chartOptions = createChartOptions({...config, dataValues: allDataValues}, true);
 
     // Add background plugin for SPI shading
     const backgroundPlugin = createBackgroundPlugin(config);
@@ -194,7 +239,7 @@ function createChartOptions(config, isEnsemble) {
         responsive: true,
         maintainAspectRatio: false,
         interaction: {
-            mode: "index",
+            mode: isEnsemble ? "point" : "index", // Use 'point' for ensemble to show individual tooltips
             intersect: false
         },
         plugins: {
@@ -214,14 +259,11 @@ function createChartOptions(config, isEnsemble) {
             tooltip: {
                 callbacks: {
                     title: (tooltipItems) => {
-                        const date = tooltipItems[0].parsed.x;
-                        if (date instanceof Date) {
-                            return date.toLocaleDateString(undefined, {
-                                year: "numeric",
-                                month: "long"
-                            });
-                        }
-                        return tooltipItems[0].label;
+                        const xValue = tooltipItems[0].parsed.x;
+                        const dateType = config.dateType || "Yearly";
+
+                        // Format date based on dateType
+                        return formatTooltipDate(xValue, dateType);
                     },
                     label: (tooltipItem) => {
                         let value = tooltipItem.parsed.y?.toFixed(2) || "N/A";
@@ -283,10 +325,21 @@ function createChartOptions(config, isEnsemble) {
         }
     };
 
-    // Apply Y-axis constraints for SPI
-    if (config.varType?.startsWith("SPI")) {
-        options.scales.y.min = -3;
-        options.scales.y.max = 3;
+    // Apply Y-axis constraints for SPI with auto-scaling
+    // Minimum range: [-3, 3], auto-expands if data exceeds this range
+    if (config.varType?.startsWith("SPI") && config.dataValues) {
+        const dataMin = Math.min(...config.dataValues);
+        const dataMax = Math.max(...config.dataValues);
+
+        // Calculate display range with minimum of [-3, 3]
+        const displayMin = Math.min(dataMin, -3);
+        const displayMax = Math.max(dataMax, 3);
+
+        options.scales.y.min = displayMin;
+        options.scales.y.max = displayMax;
+        options.scales.y.ticks = {
+            padding: 5
+        };
     }
 
     return options;

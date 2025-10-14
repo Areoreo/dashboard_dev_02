@@ -223,6 +223,41 @@
         .chart-panel {
             margin-top: 20px;
         }
+
+        .statistics-panel {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            text-align: left;
+
+            .statistics-header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #e5e7eb;
+
+                h3 {
+                    color: #1f2937;
+                    margin-bottom: 8px;
+                }
+
+                p {
+                    color: #6b7280;
+                    font-size: 0.875rem;
+                    margin: 0;
+                }
+            }
+
+            .no-data-message {
+                padding: 40px 20px;
+                text-align: center;
+                color: #9ca3af;
+                font-style: italic;
+                background: white;
+                border-radius: 8px;
+                border: 1px dashed #d1d5db;
+            }
+        }
     }
 
     .error-popup {

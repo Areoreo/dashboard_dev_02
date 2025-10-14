@@ -5,7 +5,8 @@
       "Bash(npm run dev:*)",
       "Bash(find:*)",
       "Bash(pkill:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

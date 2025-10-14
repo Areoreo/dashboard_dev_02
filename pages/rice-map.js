@@ -24,6 +24,12 @@ const ChartComponent = dynamic(
     { ssr: false }
 );
 
+// Import StatisticsTable component
+const StatisticsTable = dynamic(
+    () => import("@components/StatisticsTable"),
+    { ssr: false }
+);
+
 /**
  * Get current date information for dynamic default setting
  * @returns {Object} Object containing current year, month, and formatted strings
@@ -520,6 +526,32 @@ export default function Home() {
                             </div>
                         )}
                     </>
+                </div>
+
+                {/* Statistics Table Section */}
+                <div className="statistics-panel">
+                    <div className="statistics-header">
+                        <h3 className="text-xl font-bold mb-2">
+                            Regional Statistics Overview
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Statistical analysis of {options.varType} data across all regions
+                        </p>
+                    </div>
+                    {mapData && mapData.datatype === "geojson" && mapData.data ? (
+                        <StatisticsTable
+                            geojsonData={mapData.data}
+                            initialStartDate={null}
+                            initialEndDate={null}
+                        />
+                    ) : (
+                        <div className="no-data-message">
+                            <p>
+                                Statistics table is only available for Province and Country level data.
+                                {mapData?.datatype === "geotiff" && " (Grid data not supported)"}
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </>

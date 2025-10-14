@@ -1,5 +1,5 @@
 .time-interval__input-panel {
-    position: relative;
+    // position: relative;
     display: inline-block;
     width: 100%;
 }
@@ -12,6 +12,7 @@
 
 .time-interval__input {
     padding-right: 2.5rem;
+    width: 100%;
 }
 
 .time-interval__calendar-trigger {
@@ -122,7 +123,8 @@
     font-weight: 600;
     color: #4b5563;
     cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .time-interval__mode-button:hover,
@@ -268,11 +270,8 @@
     font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
-    transition:
-        background-color 0.2s ease,
-        color 0.2s ease,
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease,
+        border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .time-interval__action-btn:focus-visible {

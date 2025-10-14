@@ -208,6 +208,8 @@
     font-size: 0.8rem;
     color: #9ca3af;
     padding: 0.5rem 0;
+    text-align: center;
+    grid-column: 1 / -1;
 }
 
 .time-interval__month-grid {
@@ -249,6 +251,56 @@
     border-color: #e5e7eb;
     background-color: #f9fafb;
     box-shadow: none;
+}
+
+.time-interval__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.time-interval__action-btn {
+    min-width: 4.5rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.time-interval__action-btn:focus-visible {
+    outline: none;
+}
+
+.time-interval__action-btn--secondary {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border-color: #e5e7eb;
+}
+
+.time-interval__action-btn--secondary:hover,
+.time-interval__action-btn--secondary:focus-visible {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+.time-interval__action-btn--primary {
+    background-color: #1d4ed8;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.time-interval__action-btn--primary:hover,
+.time-interval__action-btn--primary:focus-visible {
+    background-color: #1e40af;
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
 }
 
 @media (max-width: 640px) {

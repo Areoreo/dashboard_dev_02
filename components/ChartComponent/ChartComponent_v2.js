@@ -41,6 +41,11 @@ export const ChartComponent_v2 = ({ selectedFeature, options }) => {
 
         if (!selectedFeature) {
             console.log("[ChartComponent_v2] No feature selected");
+            // Destroy chart when no feature is selected
+            if (chartInstanceRef.current) {
+                chartInstanceRef.current.destroy();
+                chartInstanceRef.current = null;
+            }
             setSeries([]);
             setConfig({});
             setDataReady(false);
@@ -89,12 +94,28 @@ export const ChartComponent_v2 = ({ selectedFeature, options }) => {
     // Update chart when filtered data changes
     useEffect(() => {
         if (!dataReady || !chartRef.current || !filteredSeries || filteredSeries.length === 0) {
+            // Destroy chart if no data
+            if (chartInstanceRef.current && filteredSeries.length === 0) {
+                chartInstanceRef.current.destroy();
+                chartInstanceRef.current = null;
+            }
             return;
         }
 
         console.log("[ChartComponent_v2] Creating chart");
         createChart(chartRef.current, filteredSeries, config, chartInstanceRef);
     }, [filteredSeries, config, dataReady]);
+
+    // Cleanup on unmount or when options change
+    useEffect(() => {
+        return () => {
+            if (chartInstanceRef.current) {
+                console.log("[ChartComponent_v2] Cleaning up chart instance");
+                chartInstanceRef.current.destroy();
+                chartInstanceRef.current = null;
+            }
+        };
+    }, [options]);
 
     // Handle year range update
     const handleYearRangeChange = () => {

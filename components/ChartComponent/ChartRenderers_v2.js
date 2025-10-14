@@ -96,6 +96,7 @@ export function createTimeSeriesChart(ctx, series, config, chartInstanceRef) {
                 tension: 0.3,
                 pointRadius: 0,
                 pointHoverRadius: 6,
+                pointHitRadius: 10,
                 spanGaps: true
             };
         })
@@ -149,6 +150,8 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
                 borderColor: getEnsembleColor(s.ensembleIndex),
                 borderWidth: 1,
                 pointRadius: 0,
+                pointHoverRadius: 5,
+                pointHitRadius: 8,
                 tension: 0.1,
                 spanGaps: true
             });
@@ -167,6 +170,8 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
             backgroundColor: "rgba(54, 162, 235, 0.1)",
             borderWidth: 2,
             pointRadius: 0,
+            pointHoverRadius: 6,
+            pointHitRadius: 10,
             tension: 0.3,
             spanGaps: true,
             fill: "+1" // Fill to next dataset (max)
@@ -184,6 +189,8 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
             borderColor: "rgba(255, 99, 132, 1)",
             borderWidth: 2,
             pointRadius: 0,
+            pointHoverRadius: 6,
+            pointHitRadius: 10,
             tension: 0.3,
             spanGaps: true,
             fill: false
@@ -203,6 +210,7 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
             borderWidth: 3,
             pointRadius: 4,
             pointHoverRadius: 6,
+            pointHitRadius: 10,
             tension: 0.3,
             spanGaps: true,
             order: 1 // Draw on top
@@ -240,7 +248,13 @@ function createChartOptions(config, isEnsemble) {
         maintainAspectRatio: false,
         interaction: {
             mode: isEnsemble ? "point" : "index", // Use 'point' for ensemble to show individual tooltips
-            intersect: false
+            intersect: false,
+            axis: 'xy' // Consider both x and y proximity for better tooltip trigger
+        },
+        hover: {
+            mode: isEnsemble ? "point" : "index",
+            intersect: false,
+            axis: 'xy'
         },
         plugins: {
             title: {

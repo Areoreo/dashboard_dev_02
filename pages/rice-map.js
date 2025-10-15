@@ -25,10 +25,9 @@ const ChartComponent = dynamic(
 );
 
 // Import StatisticsTable component
-const StatisticsTable = dynamic(
-    () => import("@components/StatisticsTable"),
-    { ssr: false }
-);
+const StatisticsTable = dynamic(() => import("@components/StatisticsTable"), {
+    ssr: false
+});
 
 /**
  * Get current date information for dynamic default setting
@@ -37,7 +36,7 @@ const StatisticsTable = dynamic(
 const getCurrentDateInfo = () => {
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
+    const currentMonth = now.getMonth() + 1 + 1; // getMonth() returns 0-11, so add 1
 
     // Format month with leading zero (e.g., "04" instead of "4")
     const formattedMonth = String(currentMonth).padStart(2, "0");
@@ -535,10 +534,13 @@ export default function Home() {
                             Regional Statistics Overview
                         </h3>
                         <p className="text-sm text-gray-600 mb-4">
-                            Statistical analysis of {options.varType} data across all regions
+                            Statistical analysis of {options.varType} data
+                            across all regions
                         </p>
                     </div>
-                    {mapData && mapData.datatype === "geojson" && mapData.data ? (
+                    {mapData &&
+                    mapData.datatype === "geojson" &&
+                    mapData.data ? (
                         <StatisticsTable
                             geojsonData={mapData.data}
                             initialStartDate={null}
@@ -547,8 +549,10 @@ export default function Home() {
                     ) : (
                         <div className="no-data-message">
                             <p>
-                                Statistics table is only available for Province and Country level data.
-                                {mapData?.datatype === "geotiff" && " (Grid data not supported)"}
+                                Statistics table is only available for Province
+                                and Country level data.
+                                {mapData?.datatype === "geotiff" &&
+                                    " (Grid data not supported)"}
                             </p>
                         </div>
                     )}

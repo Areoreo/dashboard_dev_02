@@ -119,7 +119,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`
             },
             forecast_Country_Yearly: {
-                Yield: `${region}_country_2025.geojson`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
@@ -128,7 +128,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`
             },
             forecast_Country_Monthly: {
-                Yield: `${region}_country_2025_monthly.geojson`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
@@ -137,7 +137,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`
             },
             forecast_Prov_Yearly: {
-                Yield: `${region}_prov_2025.geojson`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
@@ -146,7 +146,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`
             },
             forecast_Prov_Monthly: {
-                Yield: `${region}_prov_2025_monthly.geojson`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
@@ -174,7 +174,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`
             },
             hist_Country_Yearly: {
-                Yield: `${region}_yield_country.geojson`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
@@ -183,7 +183,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`
             },
             hist_Country_Monthly: {
-                Yield: `${region}_monthly_yield_country.geojson`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
@@ -192,7 +192,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`
             },
             hist_Prov_Yearly: {
-                Yield: `${region}_yield_prov.geojson`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
@@ -201,7 +201,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`
             },
             hist_Prov_Monthly: {
-                Yield: `${region}_monthly_yield_province.geojson`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}.geojson`,
@@ -414,8 +414,16 @@ export default function handler(req, res) {
         overview === "forecast" &&
         adminLevel !== "Grid"
     ) {
-        directory = "yield_json_forecast";
-        console.log("  → Using legacy Yield Forecast directory:", directory);
+        // directory = "yield_json_forecast";
+        // console.log("  → Using legacy Yield Forecast directory:", directory);
+        directory = path.join(
+            "ERA5",
+            varType,
+            overviewDir,
+            adminLevel,
+            dateType
+        );
+        console.log("  → Using ERA5 structure:", directory);
     } else if (
         varType === "Production" ||
         varType === "Area" ||

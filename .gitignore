@@ -3,6 +3,7 @@
 # custom
 # devlog/
 temp/
+scripts/
 
 # dependencies
 /node_modules

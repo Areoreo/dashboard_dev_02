@@ -129,7 +129,7 @@ function processFeatures(features, startDate, endDate) {
  * Format number for display
  */
 function formatNumber(value, decimals = 2) {
-  if (value === null || value === undefined || isNaN(value)) return '-';
+  if (value === null || value === undefined || typeof value !== 'number' || isNaN(value)) return '-';
   return value.toFixed(decimals);
 }
 

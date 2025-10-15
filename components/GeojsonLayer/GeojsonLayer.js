@@ -110,16 +110,17 @@ export const GeojsonLayer = ({
                 // Determine if this is a high or low alert
                 const isHigh = value > thresholds.high;
 
+                // Format value with proper type checking
+                const formattedValue = typeof value === 'number' && !isNaN(value)
+                    ? value.toFixed(2)
+                    : String(value);
+
                 return {
                     position: center,
                     type: isHigh ? "high" : "low",
                     message: isHigh
-                        ? `${thresholds.highMessage}: ${value.toFixed(2)}${
-                              thresholds.unit
-                          }`
-                        : `${thresholds.lowMessage}: ${value.toFixed(2)}${
-                              thresholds.unit
-                          }`,
+                        ? `${thresholds.highMessage}: ${formattedValue}${thresholds.unit}`
+                        : `${thresholds.lowMessage}: ${formattedValue}${thresholds.unit}`,
                     name: name,
                     value: value
                 };
@@ -214,10 +215,10 @@ export const GeojsonLayer = ({
                             0;
                         const name = feature.properties.name;
 
-                        // Bind tooltip
+                        // Bind tooltip with proper type checking
                         layer.bindTooltip(
                             `<b>${name}</b><br>${options.varType}: ${
-                                value !== undefined ? value.toFixed(2) : "N/A"
+                                typeof value === 'number' && !isNaN(value) ? value.toFixed(2) : "N/A"
                             }`,
                             { direction: "top", sticky: true }
                         );

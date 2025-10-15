@@ -235,7 +235,7 @@ export const COLOR_MAP_CONFIGS = {
     // ==================== Production ====================
     ProductionGrid: {
         minValue: 0,
-        maxVal: 10000,
+        maxValue: 10000,
         colormapType: "continuous",
         colorType: "hueVector",
         hueRange: [30, 120],

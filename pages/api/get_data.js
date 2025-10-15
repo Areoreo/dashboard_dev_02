@@ -99,7 +99,7 @@ export default function handler(req, res) {
         // map list from varType to fileName
         const fileMappings = {
             forecast_Grid_Yearly: {
-                Yield: `${region}_yield_yearly_${selectedDate}.tif`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
@@ -109,7 +109,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`
             },
             forecast_Grid_Monthly: {
-                Yield: `${region}_yield_monthly_${selectedDate}.tif`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
@@ -156,7 +156,7 @@ export default function handler(req, res) {
             },
             // -------------------- ERA5 BASED HIST DATA API -------------------- //
             hist_Grid_Yearly: {
-                Yield: `${region}_yield_yearly_${selectedDate}.tif`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
@@ -165,7 +165,7 @@ export default function handler(req, res) {
                 yieldAnom: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`
             },
             hist_Grid_Monthly: {
-                Yield: `${region}_yield_monthly_${selectedDate}.tif`,
+                Yield: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Area: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Production: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
                 Prcp: `${overviewDir}_${adminLevel}_${dateType}_${varType}_${region}_${selectedDate}.tif`,
@@ -407,8 +407,16 @@ export default function handler(req, res) {
     }
     // For other variable types (Yield, Production, Area, etc.), keep legacy structure
     else if (varType === "Yield" && adminLevel === "Grid") {
-        directory = "yield_grid";
-        console.log("  → Using legacy Yield Grid directory:", directory);
+        // directory = "yield_grid";
+        // console.log("  → Using legacy Yield Grid directory:", directory);
+        directory = path.join(
+            "ERA5",
+            varType,
+            overviewDir,
+            adminLevel,
+            dateType
+        );
+        console.log("  → Using ERA5 structure:", directory);
     } else if (
         varType === "Yield" &&
         overview === "forecast" &&

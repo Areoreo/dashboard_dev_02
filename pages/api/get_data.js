@@ -421,12 +421,28 @@ export default function handler(req, res) {
         varType === "Area" ||
         varType === "yieldAnom"
     ) {
-        directory = path.join(varType, overviewDir, adminLevel, dateType);
-        console.log("  → Using standard structure:", directory);
+        // directory = path.join(varType, overviewDir, adminLevel, dateType);
+        // console.log("  → Using standard structure:", directory);
+        directory = path.join(
+            "ERA5",
+            varType,
+            overviewDir,
+            adminLevel,
+            dateType
+        );
+        console.log("  → Using ERA5 structure:", directory);
     } else {
         // Default fallback
-        directory = path.join(varType, overviewDir, adminLevel, dateType);
-        console.log("  → Using default structure:", directory);
+        // directory = path.join(varType, overviewDir, adminLevel, dateType);
+        // console.log("  → Using default structure:", directory);
+        directory = path.join(
+            "ERA5",
+            varType,
+            overviewDir,
+            adminLevel,
+            dateType
+        );
+        console.log("  → Using ERA5 structure:", directory);
     }
     // ******************* END SIMPLIFIED DIRECTORY LOGIC ***************************//
     console.log("📂 Determined directory:", directory);

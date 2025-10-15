@@ -2,6 +2,7 @@
 
 # custom
 # devlog/
+temp/
 
 # dependencies
 /node_modules

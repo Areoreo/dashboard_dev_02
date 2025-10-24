@@ -205,31 +205,6 @@ dashboard_dev_02/
 
 ---
 
-## Recent Major Improvements
-
-### ✅ Chart Component Refactor (DevLog 13)
-
--   **69% reduction** in processing logic
--   Standardized time series format
--   Cleaner separation of concerns
--   Better ensemble visualization
-
-### ✅ Color System Overhaul (DevLog 11)
-
--   **92% simpler** color system (12 functions → 1 unified function)
--   Centralized configuration (`colorMapConfig.js`)
--   Automatic legend-map color synchronization
--   Fixed triple-rendering bug causing color inconsistencies
-
-### ✅ Tooltip & Interaction Improvements (2025-10-14)
-
--   Increased hover tolerance with `pointHitRadius`
--   Auto y-axis scaling for SPI with minimum range [-3, 3]
--   Split ensemble tooltips for individual point visibility
--   Date format matching selected dateType (Yearly/Monthly/Daily)
-
----
-
 ## Development Logs
 
 Comprehensive development documentation is available in `/devlog/`:
@@ -304,7 +279,7 @@ python scripts/geojson_standardizer.py \
 ### Backward Compatibility
 
 -   Legacy components preserved (e.g., `ChartComponent.js`)
--   New components use `_v2` suffix for clarity
+-   Original components use `_bkup` suffix for clarity
 -   Gradual migration path available
 
 ### Data Organization
@@ -314,18 +289,6 @@ Files follow the structure:
 ```
 /data/[DataSource]/[Variable]/[Overview]/[AdminLevel]/[DateType]/filename.geojson
 ```
-
----
-
-## Contributing
-
-When adding new features or fixes:
-
-1. Read relevant devlogs for context
-2. Follow the established architecture patterns
-3. Use v2 components for new development
-4. Update devlog with significant changes
-5. Test across variable types and admin levels
 
 ---
 

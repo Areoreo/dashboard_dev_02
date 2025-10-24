@@ -52,8 +52,9 @@ const formatTooltipDate = (dateValue, dateType = "Yearly") => {
  * @returns {Chart} Chart.js instance
  */
 export function createChart(canvas, series, config, chartInstanceRef) {
-    // Destroy existing chart
+    // Destroy existing chart and clean up tooltips
     if (chartInstanceRef.current) {
+        clearCustomTooltip(chartInstanceRef.current);
         chartInstanceRef.current.destroy();
     }
 
@@ -228,15 +229,189 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
     // Add background plugin for SPI shading
     const backgroundPlugin = createBackgroundPlugin(config);
 
+    // Add instruction text plugin for ensemble charts
+    const instructionPlugin = createInstructionPlugin();
+
     // Create chart
     chartInstanceRef.current = new Chart(ctx, {
         type: "line",
         data: { datasets },
         options: chartOptions,
-        plugins: [backgroundPlugin]
+        plugins: [backgroundPlugin, instructionPlugin]
     });
 
     return chartInstanceRef.current;
+}
+
+/**
+ * Handle chart click for ensemble charts
+ * Shows tooltip on click instead of hover
+ */
+function handleChartClick(event, activeElements, chart, config) {
+    // Always clear existing tooltip first
+    clearCustomTooltip(chart);
+
+    if (activeElements.length === 0) {
+        // Clicked on empty area - tooltip already cleared above
+        return;
+    }
+
+    const element = activeElements[0];
+    const datasetIndex = element.datasetIndex;
+    const index = element.index;
+    const dataset = chart.data.datasets[datasetIndex];
+    const dataPoint = dataset.data[index];
+
+    // Get the date type for formatting
+    const dateType = config.dateType || "Yearly";
+    const formattedDate = formatTooltipDate(dataPoint.x, dateType);
+
+    // Format value
+    const value = dataPoint.y?.toFixed(2) || "N/A";
+    let label = `${dataset.label}: ${value}`;
+
+    // Add SPI interpretation
+    if (config.varType?.startsWith("SPI")) {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue)) {
+            if (numValue > 2) label += " | Extremely Wet";
+            else if (numValue > 1.5) label += " | Very Wet";
+            else if (numValue > 1) label += " | Moderately Wet";
+            else if (numValue < -2) label += " | Extremely Dry";
+            else if (numValue < -1.5) label += " | Severely Dry";
+            else if (numValue < -1) label += " | Moderately Dry";
+        }
+    }
+
+    // Show custom tooltip
+    showCustomTooltip(chart, element, formattedDate, label);
+}
+
+/**
+ * Show custom tooltip at clicked position
+ */
+function showCustomTooltip(chart, element, title, label) {
+    // Remove existing tooltip and its listeners
+    clearCustomTooltip(chart);
+
+    const canvas = chart.canvas;
+    const position = element.element.tooltipPosition();
+
+    // Create tooltip container
+    const tooltip = document.createElement('div');
+    tooltip.className = 'chart-custom-tooltip';
+    tooltip.style.cssText = `
+        position: absolute;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        pointer-events: auto;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        max-width: 320px;
+        white-space: nowrap;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    `;
+
+    // Create close button
+    const closeButton = document.createElement('button');
+    closeButton.innerHTML = '×';
+    closeButton.style.cssText = `
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        line-height: 20px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    `;
+    closeButton.onmouseover = () => closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+    closeButton.onmouseout = () => closeButton.style.backgroundColor = 'transparent';
+    closeButton.onclick = (e) => {
+        e.stopPropagation();
+        clearCustomTooltip(chart);
+    };
+
+    // Create tooltip content
+    const titleDiv = document.createElement('div');
+    titleDiv.style.cssText = 'font-weight: bold; font-size: 16px; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 4px; padding-right: 24px;';
+    titleDiv.textContent = title;
+
+    const labelDiv = document.createElement('div');
+    labelDiv.style.cssText = 'padding-right: 24px;';
+    labelDiv.textContent = label;
+
+    tooltip.appendChild(closeButton);
+    tooltip.appendChild(titleDiv);
+    tooltip.appendChild(labelDiv);
+
+    // Position tooltip
+    const canvasRect = canvas.getBoundingClientRect();
+    const tooltipX = canvasRect.left + position.x + window.scrollX;
+    const tooltipY = canvasRect.top + position.y + window.scrollY - 100; // Offset above point
+
+    tooltip.style.left = tooltipX + 'px';
+    tooltip.style.top = tooltipY + 'px';
+
+    // Add to document
+    document.body.appendChild(tooltip);
+
+    // Store reference for cleanup
+    chart._customTooltip = tooltip;
+
+    // Adjust position if tooltip goes off screen
+    setTimeout(() => {
+        const tooltipRect = tooltip.getBoundingClientRect();
+        if (tooltipRect.right > window.innerWidth) {
+            tooltip.style.left = (tooltipX - tooltipRect.width - 20) + 'px';
+        }
+        if (tooltipRect.top < 0) {
+            tooltip.style.top = (tooltipY + 120) + 'px';
+        }
+    }, 0);
+
+    // Add global click handler to close tooltip when clicking outside
+    const outsideClickHandler = (e) => {
+        // Check if click is outside tooltip and canvas
+        if (!tooltip.contains(e.target) && !canvas.contains(e.target)) {
+            clearCustomTooltip(chart);
+        }
+    };
+
+    // Store handler reference for cleanup
+    chart._tooltipClickHandler = outsideClickHandler;
+
+    // Add listener with slight delay to avoid immediate triggering
+    setTimeout(() => {
+        document.addEventListener('click', outsideClickHandler);
+    }, 100);
+}
+
+/**
+ * Clear custom tooltip
+ */
+function clearCustomTooltip(chart) {
+    // Remove tooltip element
+    if (chart._customTooltip) {
+        chart._customTooltip.remove();
+        chart._customTooltip = null;
+    }
+
+    // Remove global click listener
+    if (chart._tooltipClickHandler) {
+        document.removeEventListener('click', chart._tooltipClickHandler);
+        chart._tooltipClickHandler = null;
+    }
 }
 
 /**
@@ -252,7 +427,7 @@ function createChartOptions(config, isEnsemble) {
             axis: 'xy' // Consider both x and y proximity for better tooltip trigger
         },
         hover: {
-            mode: isEnsemble ? "point" : "index",
+            mode: isEnsemble ? "nearest" : "index",
             intersect: false,
             axis: 'xy'
         },
@@ -271,6 +446,7 @@ function createChartOptions(config, isEnsemble) {
                 }
             },
             tooltip: {
+                enabled: !isEnsemble, // Disable default tooltip for ensemble charts
                 callbacks: {
                     title: (tooltipItems) => {
                         const xValue = tooltipItems[0].parsed.x;
@@ -336,7 +512,11 @@ function createChartOptions(config, isEnsemble) {
                     color: "rgba(0, 0, 0, 0.1)"
                 }
             }
-        }
+        },
+        // Add click event handler for ensemble charts
+        onClick: isEnsemble ? (event, activeElements, chart) => {
+            handleChartClick(event, activeElements, chart, config);
+        } : undefined
     };
 
     // Apply Y-axis constraints for SPI with auto-scaling
@@ -405,6 +585,34 @@ function createBackgroundPlugin(config) {
                     );
                 }
             });
+
+            ctx.restore();
+        }
+    };
+}
+
+/**
+ * Create instruction text plugin for ensemble charts
+ * Shows a subtle hint to click on points
+ */
+function createInstructionPlugin() {
+    return {
+        id: "instructionPlugin",
+        afterDraw: (chart) => {
+            const ctx = chart.ctx;
+            const chartArea = chart.chartArea;
+
+            if (!chartArea) {
+                return;
+            }
+
+            ctx.save();
+
+            // Draw instruction text at top-right corner
+            ctx.font = '12px Arial';
+            ctx.fillStyle = 'rgba(100, 100, 100, 0.6)';
+            ctx.textAlign = 'right';
+            ctx.fillText('💡 Click on a point to view details', chartArea.right - 10, chartArea.top - 10);
 
             ctx.restore();
         }

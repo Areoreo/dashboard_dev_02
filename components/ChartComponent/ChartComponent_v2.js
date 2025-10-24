@@ -35,14 +35,24 @@ export const ChartComponent_v2 = ({ selectedFeature, options }) => {
     const [dataReady, setDataReady] = useState(false);
     const [showDownloadOptions, setShowDownloadOptions] = useState(false);
 
-    // Process feature when it changes
+    // Process feature when it changes or options change
     useEffect(() => {
         console.log("\n=== ChartComponent_v2: Processing Feature ===");
+        console.log("[ChartComponent_v2] Options changed:", options);
 
         if (!selectedFeature) {
             console.log("[ChartComponent_v2] No feature selected");
             // Destroy chart when no feature is selected
             if (chartInstanceRef.current) {
+                // Clean up any tooltips before destroying
+                if (chartInstanceRef.current._customTooltip) {
+                    if (chartInstanceRef.current._tooltipClickHandler) {
+                        document.removeEventListener('click', chartInstanceRef.current._tooltipClickHandler);
+                    }
+                    if (chartInstanceRef.current._customTooltip.remove) {
+                        chartInstanceRef.current._customTooltip.remove();
+                    }
+                }
                 chartInstanceRef.current.destroy();
                 chartInstanceRef.current = null;
             }
@@ -50,6 +60,20 @@ export const ChartComponent_v2 = ({ selectedFeature, options }) => {
             setConfig({});
             setDataReady(false);
             return;
+        }
+
+        // Clean up old chart tooltips when options change
+        if (chartInstanceRef.current) {
+            if (chartInstanceRef.current._customTooltip) {
+                if (chartInstanceRef.current._tooltipClickHandler) {
+                    document.removeEventListener('click', chartInstanceRef.current._tooltipClickHandler);
+                    chartInstanceRef.current._tooltipClickHandler = null;
+                }
+                if (chartInstanceRef.current._customTooltip.remove) {
+                    chartInstanceRef.current._customTooltip.remove();
+                }
+                chartInstanceRef.current._customTooltip = null;
+            }
         }
 
         // Process feature data

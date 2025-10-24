@@ -151,7 +151,7 @@ export const COLOR_MAP_CONFIGS = {
     },
 
     YieldProv: {
-        minValue: 4,
+        minValue: 1,
         maxValue: 7,
         colormapType: "continuous",
         colorType: "rgbColorCode",
@@ -165,13 +165,13 @@ export const COLOR_MAP_CONFIGS = {
             "#238443",
             "#005a32"
         ],
-        legendGrades: [4, 5, 6, 7],
+        legendGrades: [1, 3, 5, 7],
         title: "Yield (ton/ha)",
         unit: "ton/ha"
     },
 
     YieldCountry: {
-        minValue: 4,
+        minValue: 1,
         maxValue: 7,
         colormapType: "continuous",
         colorType: "rgbColorCode",
@@ -185,7 +185,7 @@ export const COLOR_MAP_CONFIGS = {
             "#238443",
             "#005a32"
         ],
-        legendGrades: [4, 5, 6, 7],
+        legendGrades: [1, 3, 5, 7],
         title: "Yield (ton/ha)",
         unit: "ton/ha"
     },

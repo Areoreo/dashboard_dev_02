@@ -25,18 +25,5 @@ export {
     filterSeriesByYearRange
 } from "./TimeSeriesProcessor";
 
-// Legacy Components - Preserved for backward compatibility
-export * from "./ChartComponent";
-export {
-    processData,
-    processHistoricalData,
-    getYearOptions,
-    filterDataByYearRange
-} from "./ChartDataProcessor";
-
 // Shared Utilities
 export { downloadCSV, downloadImage } from "./ChartExportUtils";
-
-// Default export - legacy component for backward compatibility
-// To use v2, explicitly import ChartComponent_v2
-export { ChartComponent as default } from "./ChartComponent";

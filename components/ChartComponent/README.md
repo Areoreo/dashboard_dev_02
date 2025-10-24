@@ -207,6 +207,23 @@ For SPI drought indices, background areas are automatically added:
 - Reduced memory footprint
 - Better React rendering optimization
 
+### Click-to-Show Tooltips (2025-10-24)
+
+**Problem**: Large ensemble datasets (1980-2026 with ~7000 time periods) caused severe performance issues with hover-based tooltips, resulting in slow response and UI lag.
+
+**Solution**: Implemented click-based tooltips for ensemble charts:
+- **Hover tooltips disabled** for ensemble charts (reduces continuous rendering overhead)
+- **Click to reveal** tooltip at specific point (on-demand rendering only)
+- **Custom tooltip styling** with improved positioning and auto-adjustment
+- **Visual hint** added to chart ("💡 Click on a point to view details")
+- **Automatic cleanup** when clicking elsewhere or destroying chart
+
+**Benefits**:
+- Eliminates continuous hover event processing for thousands of data points
+- Reduces CPU usage during chart interaction
+- Maintains full tooltip functionality with better UX
+- Non-ensemble charts still use hover tooltips (no change)
+
 ## Migration Guide
 
 ### Step 1: Preprocess Data

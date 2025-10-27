@@ -252,7 +252,7 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
         l95Series.timeSeriesData.some((entry) => entry.value !== null)
     ) {
         datasets.push({
-            label: "Lower 95% CI",
+            label: "Lower estimate (95%)",
             data: l95Series.timeSeriesData.map((entry) => ({
                 x: entry.date,
                 y: entry.value
@@ -276,7 +276,7 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
         h95Series.timeSeriesData.some((entry) => entry.value !== null)
     ) {
         datasets.push({
-            label: "Upper 95% CI",
+            label: "Upper estimate (95%)",
             data: h95Series.timeSeriesData.map((entry) => ({
                 x: entry.date,
                 y: entry.value
@@ -391,31 +391,52 @@ function handleChartClick(event, activeElements, chart, config) {
     // Format value
     const value = dataPoint.y?.toFixed(2) || "N/A";
     const numValue = parseFloat(value);
-    let label = `${dataset.label}: ${value}`;
+
+    // Build tooltip data object with all information
+    const tooltipData = {
+        label: dataset.label,
+        value: value,
+        interpretation: null,
+        missingMessage: null,
+        statisticsInfo: null
+    };
 
     // Check if this is a missing value and show appropriate message
     if (!isNaN(numValue) && isMissingValue(numValue, config.varType)) {
-        const missingMessage = getMissingValueMessage(config.varType);
-        label = `${dataset.label}: ${value} | ${missingMessage}`;
+        tooltipData.missingMessage = getMissingValueMessage(config.varType);
     }
     // Add SPI interpretation for non-missing values
     else if (config.varType?.startsWith("SPI") && !isNaN(numValue)) {
-        if (numValue > 2) label += " | Extremely Wet";
-        else if (numValue > 1.5) label += " | Very Wet";
-        else if (numValue > 1) label += " | Moderately Wet";
-        else if (numValue < -2) label += " | Extremely Dry";
-        else if (numValue < -1.5) label += " | Severely Dry";
-        else if (numValue < -1) label += " | Moderately Dry";
+        if (numValue > 2) tooltipData.interpretation = "Extremely Wet";
+        else if (numValue > 1.5) tooltipData.interpretation = "Very Wet";
+        else if (numValue > 1) tooltipData.interpretation = "Moderately Wet";
+        else if (numValue < -2) tooltipData.interpretation = "Extremely Dry";
+        else if (numValue < -1.5) tooltipData.interpretation = "Severely Dry";
+        else if (numValue < -1) tooltipData.interpretation = "Moderately Dry";
+    }
+
+    // Add statistics info for confidence interval labels
+    if (dataset.label === "Lower estimate (95%)" || dataset.label === "Upper estimate (95%)") {
+        tooltipData.statisticsInfo = "Values are expected to fall within this range 95% of the time.";
     }
 
     // Show custom tooltip
-    showCustomTooltip(chart, element, formattedDate, label);
+    showCustomTooltip(chart, element, formattedDate, tooltipData);
 }
 
 /**
  * Show custom tooltip at clicked position
+ * @param {Chart} chart - Chart.js instance
+ * @param {Object} element - Active chart element
+ * @param {string} title - Formatted date string
+ * @param {Object} tooltipData - Structured tooltip data
+ * @param {string} tooltipData.label - Dataset label
+ * @param {string} tooltipData.value - Formatted value
+ * @param {string|null} tooltipData.interpretation - SPI interpretation
+ * @param {string|null} tooltipData.missingMessage - Missing value message
+ * @param {string|null} tooltipData.statisticsInfo - Statistics explanation
  */
-function showCustomTooltip(chart, element, title, label) {
+function showCustomTooltip(chart, element, title, tooltipData) {
     // Remove existing tooltip immediately (no animation) when opening new one
     clearCustomTooltip(chart, true);
 
@@ -435,18 +456,44 @@ function showCustomTooltip(chart, element, title, label) {
         clearCustomTooltip(chart);
     };
 
-    // Create tooltip content
+    // Create tooltip content - Title
     const titleDiv = document.createElement("div");
     titleDiv.className = "chart-tooltip-title";
     titleDiv.textContent = title;
 
-    const labelDiv = document.createElement("div");
-    labelDiv.className = "chart-tooltip-label";
-    labelDiv.textContent = label;
+    // Create tooltip content - Main value
+    const valueDiv = document.createElement("div");
+    valueDiv.className = "chart-tooltip-value";
+    valueDiv.innerHTML = `<strong>${tooltipData.label}:</strong> ${tooltipData.value}`;
 
+    // Append elements to tooltip
     tooltip.appendChild(closeButton);
     tooltip.appendChild(titleDiv);
-    tooltip.appendChild(labelDiv);
+    tooltip.appendChild(valueDiv);
+
+    // Add interpretation if available
+    if (tooltipData.interpretation) {
+        const interpretationDiv = document.createElement("div");
+        interpretationDiv.className = "chart-tooltip-interpretation";
+        interpretationDiv.textContent = tooltipData.interpretation;
+        tooltip.appendChild(interpretationDiv);
+    }
+
+    // Add missing value message if available
+    if (tooltipData.missingMessage) {
+        const missingDiv = document.createElement("div");
+        missingDiv.className = "chart-tooltip-missing";
+        missingDiv.textContent = tooltipData.missingMessage;
+        tooltip.appendChild(missingDiv);
+    }
+
+    // Add statistics info if available
+    if (tooltipData.statisticsInfo) {
+        const statsDiv = document.createElement("div");
+        statsDiv.className = "chart-tooltip-stats";
+        statsDiv.innerHTML = `<em>${tooltipData.statisticsInfo}</em>`;
+        tooltip.appendChild(statsDiv);
+    }
 
     // Position tooltip
     const canvasRect = canvas.getBoundingClientRect();

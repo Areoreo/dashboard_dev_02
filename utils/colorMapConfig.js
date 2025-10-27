@@ -101,7 +101,8 @@ export const COLOR_MAP_CONFIGS = {
     PrcpCountryMonthly: {
         minValue: 0,
         maxValue: 500,
-        colormapType: "hueVector",
+        colormapType: "continuous",
+        colorType: "hueVector",
         hueRange: [200, 0],
         saturation: 100,
         lightness: 50,

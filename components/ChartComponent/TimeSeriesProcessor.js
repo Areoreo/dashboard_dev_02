@@ -6,6 +6,7 @@
  */
 
 import { getColorConfig } from "@utils/colorMapConfig";
+import { convertNullValue } from "@utils/missingValueConfig";
 
 /**
  * Process time series data from a GeoJSON feature into chart-ready format
@@ -55,7 +56,7 @@ export function processTimeSeriesData(feature, options) {
         if (shouldStartNewGroup) {
             // Save previous group if exists
             if (currentGroup) {
-                series.push(createSeriesFromGroup(currentGroup));
+                series.push(createSeriesFromGroup(currentGroup, options));
             }
 
             // Start new group
@@ -71,7 +72,7 @@ export function processTimeSeriesData(feature, options) {
 
     // Don't forget the last group
     if (currentGroup) {
-        series.push(createSeriesFromGroup(currentGroup));
+        series.push(createSeriesFromGroup(currentGroup, options));
     }
 
     // Generate chart configuration
@@ -95,8 +96,95 @@ function isDateGap(entry1, entry2) {
 /**
  * Create a series object from a group of entries
  */
-function createSeriesFromGroup(group) {
+function createSeriesFromGroup(group, options = {}) {
+    const varType = options?.varType;
+
     if (group.type === 'single') {
+        // Check if any entries have statistics (l95, h95, etc.)
+        const hasStatistics = group.entries.some(e => e.statistics && Object.keys(e.statistics).length > 0);
+
+        if (hasStatistics) {
+            // If we have statistics, create multiple series like ensemble data
+            const series = [];
+
+            // Main value series
+            series.push({
+                plotType: 'singleValue',
+                timeSeriesData: group.entries.map(entry => ({
+                    date: new Date(entry.date),
+                    value: entry.value,
+                    year: entry.year,
+                    month: entry.month,
+                    formattedDate: formatDate(entry.date)
+                }))
+            });
+
+            // L95 series (if exists)
+            // Convert null to appropriate value based on varType (e.g., 0 for Yield)
+            const hasL95 = group.entries.some(e => e.statistics?.l95 !== null && e.statistics?.l95 !== undefined);
+            if (hasL95) {
+                series.push({
+                    plotType: 'l95',
+                    timeSeriesData: group.entries.map(entry => ({
+                        date: new Date(entry.date),
+                        value: convertNullValue(entry.statistics?.l95, varType),
+                        year: entry.year,
+                        month: entry.month,
+                        formattedDate: formatDate(entry.date)
+                    }))
+                });
+            }
+
+            // H95 series (if exists)
+            // Convert null to appropriate value based on varType (e.g., 0 for Yield)
+            const hasH95 = group.entries.some(e => e.statistics?.h95 !== null && e.statistics?.h95 !== undefined);
+            if (hasH95) {
+                series.push({
+                    plotType: 'h95',
+                    timeSeriesData: group.entries.map(entry => ({
+                        date: new Date(entry.date),
+                        value: convertNullValue(entry.statistics?.h95, varType),
+                        year: entry.year,
+                        month: entry.month,
+                        formattedDate: formatDate(entry.date)
+                    }))
+                });
+            }
+
+            // Min series (if exists)
+            const hasMin = group.entries.some(e => e.statistics?.min !== null && e.statistics?.min !== undefined);
+            if (hasMin) {
+                series.push({
+                    plotType: 'min',
+                    timeSeriesData: group.entries.map(entry => ({
+                        date: new Date(entry.date),
+                        value: entry.statistics?.min || null,
+                        year: entry.year,
+                        month: entry.month,
+                        formattedDate: formatDate(entry.date)
+                    }))
+                });
+            }
+
+            // Max series (if exists)
+            const hasMax = group.entries.some(e => e.statistics?.max !== null && e.statistics?.max !== undefined);
+            if (hasMax) {
+                series.push({
+                    plotType: 'max',
+                    timeSeriesData: group.entries.map(entry => ({
+                        date: new Date(entry.date),
+                        value: entry.statistics?.max || null,
+                        year: entry.year,
+                        month: entry.month,
+                        formattedDate: formatDate(entry.date)
+                    }))
+                });
+            }
+
+            return series;
+        }
+
+        // Simple single value without statistics
         return {
             plotType: 'singleValue',
             timeSeriesData: group.entries.map(entry => ({
@@ -134,7 +222,7 @@ function createSeriesFromGroup(group) {
             }
         }
 
-        // Add statistics lines (mean, min, max)
+        // Add statistics lines (mean, min, max, l95, h95)
         const meanSeries = {
             plotType: 'mean',
             timeSeriesData: group.entries.map(entry => ({
@@ -168,10 +256,34 @@ function createSeriesFromGroup(group) {
             }))
         };
 
+        const l95Series = {
+            plotType: 'l95',
+            timeSeriesData: group.entries.map(entry => ({
+                date: new Date(entry.date),
+                value: convertNullValue(entry.statistics?.l95, varType),
+                year: entry.year,
+                month: entry.month,
+                formattedDate: formatDate(entry.date)
+            }))
+        };
+
+        const h95Series = {
+            plotType: 'h95',
+            timeSeriesData: group.entries.map(entry => ({
+                date: new Date(entry.date),
+                value: convertNullValue(entry.statistics?.h95, varType),
+                year: entry.year,
+                month: entry.month,
+                formattedDate: formatDate(entry.date)
+            }))
+        };
+
         return [
             ...ensembleSeries,
             minSeries,
             maxSeries,
+            l95Series,
+            h95Series,
             meanSeries
         ];
     }
@@ -424,7 +536,7 @@ function extractLegacyTimeSeries(properties) {
         if (suffix === "") {
             // Simple value: y2020 or y202504
             dateGroups[dateStr].value = properties[key];
-        } else if (suffix === "mean" || suffix === "min" || suffix === "max") {
+        } else if (suffix === "mean" || suffix === "min" || suffix === "max" || suffix === "l95" || suffix === "h95") {
             // Statistics
             dateGroups[dateStr].statistics[suffix] = properties[key];
         } else if (!isNaN(parseInt(suffix))) {
@@ -470,6 +582,11 @@ function extractLegacyTimeSeries(properties) {
             // Single value data
             entry.type = 'single';
             entry.value = group.value;
+
+            // Attach statistics if they exist (e.g., l95, h95 without ensemble members)
+            if (Object.keys(group.statistics).length > 0) {
+                entry.statistics = group.statistics;
+            }
         } else {
             // Skip entries without values
             continue;

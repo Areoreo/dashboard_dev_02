@@ -183,7 +183,9 @@ function getSeriesLabel(series) {
         'ensemble': `Ensemble ${series.ensembleIndex}`,
         'mean': 'Mean',
         'min': 'Min',
-        'max': 'Max'
+        'max': 'Max',
+        'l95': 'L95',
+        'h95': 'H95'
     };
 
     return typeLabels[series.plotType] || series.plotType;

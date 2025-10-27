@@ -247,6 +247,80 @@
     }
 }
 
+/* Custom Tooltip Styles */
+.chart-custom-tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    pointer-events: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    max-width: 320px;
+    min-width: 200px;
+    white-space: normal;
+    word-wrap: break-word;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+
+    &.show {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+    &.hiding {
+        opacity: 0;
+        transform: scale(0.95) translateY(-5px);
+        transition: opacity 0.15s ease-in, transform 0.15s ease-in;
+    }
+}
+
+.chart-tooltip-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    line-height: 20px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    &:focus {
+        outline: none;
+    }
+}
+
+.chart-tooltip-title {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 4px;
+    padding-right: 24px;
+    word-wrap: break-word;
+}
+
+.chart-tooltip-label {
+    padding-right: 24px;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .chart-controls {
@@ -261,5 +335,10 @@
 
     .chart-container {
         height: 350px;
+    }
+
+    .chart-custom-tooltip {
+        max-width: 280px;
+        font-size: 13px;
     }
 }

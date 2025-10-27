@@ -3,6 +3,9 @@
 # custom
 # devlog/
 temp/
+mizu-remote/
+.claude/
+ClaudeTemp/
 
 # dependencies
 /node_modules

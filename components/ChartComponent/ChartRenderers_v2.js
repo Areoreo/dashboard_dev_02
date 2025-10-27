@@ -6,6 +6,7 @@
 
 import Chart from "chart.js/auto";
 import "chartjs-adapter-date-fns";
+import { isMissingValue, getMissingValueMessage } from "@utils/missingValueConfig";
 
 /**
  * Format date for tooltip based on dateType
@@ -61,11 +62,15 @@ export function createChart(canvas, series, config, chartInstanceRef) {
     const ctx = canvas.getContext("2d");
 
     // Determine chart type
+    // Use ensemble chart if we have ensemble members, mean, or multiple statistics (min/max/l95/h95)
     const hasEnsemble = series.some(
         (s) => s.plotType === "ensemble" || s.plotType === "mean"
     );
+    const hasStatistics = series.some(
+        (s) => s.plotType === "min" || s.plotType === "max" || s.plotType === "l95" || s.plotType === "h95"
+    );
 
-    if (hasEnsemble) {
+    if (hasEnsemble || hasStatistics) {
         return createEnsembleChart(ctx, series, config, chartInstanceRef);
     } else {
         return createTimeSeriesChart(ctx, series, config, chartInstanceRef);
@@ -133,9 +138,12 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
 
     // Separate series by type
     const ensembleSeries = series.filter((s) => s.plotType === "ensemble");
+    const singleValueSeries = series.find((s) => s.plotType === "singleValue");
     const meanSeries = series.find((s) => s.plotType === "mean");
     const minSeries = series.find((s) => s.plotType === "min");
     const maxSeries = series.find((s) => s.plotType === "max");
+    const l95Series = series.find((s) => s.plotType === "l95");
+    const h95Series = series.find((s) => s.plotType === "h95");
 
     const datasets = [];
 
@@ -198,6 +206,66 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
         });
     }
 
+    // Add l95 dataset (lower 95% CI)
+    if (l95Series && l95Series.timeSeriesData && l95Series.timeSeriesData.some(entry => entry.value !== null)) {
+        datasets.push({
+            label: "L95",
+            data: l95Series.timeSeriesData.map((entry) => ({
+                x: entry.date,
+                y: entry.value
+            })),
+            borderColor: "rgba(255, 159, 64, 1)",
+            borderWidth: 2,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            pointHitRadius: 10,
+            tension: 0.3,
+            spanGaps: true,
+            fill: false
+        });
+    }
+
+    // Add h95 dataset (higher 95% CI)
+    if (h95Series && h95Series.timeSeriesData && h95Series.timeSeriesData.some(entry => entry.value !== null)) {
+        datasets.push({
+            label: "H95",
+            data: h95Series.timeSeriesData.map((entry) => ({
+                x: entry.date,
+                y: entry.value
+            })),
+            borderColor: "rgba(153, 102, 255, 1)",
+            borderWidth: 2,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            pointHitRadius: 10,
+            tension: 0.3,
+            spanGaps: true,
+            fill: false
+        });
+    }
+
+    // Add singleValue dataset (if present, for data with statistics but no ensemble/mean)
+    if (singleValueSeries && singleValueSeries.timeSeriesData) {
+        datasets.push({
+            label: "Value",
+            data: singleValueSeries.timeSeriesData.map((entry) => ({
+                x: entry.date,
+                y: entry.value
+            })),
+            borderColor: "rgba(75, 192, 192, 1)",
+            backgroundColor: "rgba(75, 192, 192, 0.2)",
+            borderWidth: 3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointHitRadius: 10,
+            tension: 0.3,
+            spanGaps: true,
+            order: 1 // Draw on top
+        });
+    }
+
     // Add mean dataset (thick line on top)
     if (meanSeries && meanSeries.timeSeriesData) {
         datasets.push({
@@ -248,13 +316,14 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
  * Shows tooltip on click instead of hover
  */
 function handleChartClick(event, activeElements, chart, config) {
-    // Always clear existing tooltip first
-    clearCustomTooltip(chart);
-
     if (activeElements.length === 0) {
-        // Clicked on empty area - tooltip already cleared above
+        // Clicked on empty area - clear with animation
+        clearCustomTooltip(chart);
         return;
     }
+
+    // Clear existing tooltip immediately before showing new one
+    clearCustomTooltip(chart, true);
 
     const element = activeElements[0];
     const datasetIndex = element.datasetIndex;
@@ -268,19 +337,22 @@ function handleChartClick(event, activeElements, chart, config) {
 
     // Format value
     const value = dataPoint.y?.toFixed(2) || "N/A";
+    const numValue = parseFloat(value);
     let label = `${dataset.label}: ${value}`;
 
-    // Add SPI interpretation
-    if (config.varType?.startsWith("SPI")) {
-        const numValue = parseFloat(value);
-        if (!isNaN(numValue)) {
-            if (numValue > 2) label += " | Extremely Wet";
-            else if (numValue > 1.5) label += " | Very Wet";
-            else if (numValue > 1) label += " | Moderately Wet";
-            else if (numValue < -2) label += " | Extremely Dry";
-            else if (numValue < -1.5) label += " | Severely Dry";
-            else if (numValue < -1) label += " | Moderately Dry";
-        }
+    // Check if this is a missing value and show appropriate message
+    if (!isNaN(numValue) && isMissingValue(numValue, config.varType)) {
+        const missingMessage = getMissingValueMessage(config.varType);
+        label = `${dataset.label}: ${value} | ${missingMessage}`;
+    }
+    // Add SPI interpretation for non-missing values
+    else if (config.varType?.startsWith("SPI") && !isNaN(numValue)) {
+        if (numValue > 2) label += " | Extremely Wet";
+        else if (numValue > 1.5) label += " | Very Wet";
+        else if (numValue > 1) label += " | Moderately Wet";
+        else if (numValue < -2) label += " | Extremely Dry";
+        else if (numValue < -1.5) label += " | Severely Dry";
+        else if (numValue < -1) label += " | Moderately Dry";
     }
 
     // Show custom tooltip
@@ -291,8 +363,8 @@ function handleChartClick(event, activeElements, chart, config) {
  * Show custom tooltip at clicked position
  */
 function showCustomTooltip(chart, element, title, label) {
-    // Remove existing tooltip and its listeners
-    clearCustomTooltip(chart);
+    // Remove existing tooltip immediately (no animation) when opening new one
+    clearCustomTooltip(chart, true);
 
     const canvas = chart.canvas;
     const position = element.element.tooltipPosition();
@@ -300,43 +372,11 @@ function showCustomTooltip(chart, element, title, label) {
     // Create tooltip container
     const tooltip = document.createElement('div');
     tooltip.className = 'chart-custom-tooltip';
-    tooltip.style.cssText = `
-        position: absolute;
-        background: rgba(0, 0, 0, 0.9);
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 14px;
-        pointer-events: auto;
-        z-index: 1000;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-        max-width: 320px;
-        white-space: nowrap;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    `;
 
     // Create close button
     const closeButton = document.createElement('button');
+    closeButton.className = 'chart-tooltip-close';
     closeButton.innerHTML = '×';
-    closeButton.style.cssText = `
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        background: transparent;
-        border: none;
-        color: white;
-        font-size: 24px;
-        font-weight: bold;
-        cursor: pointer;
-        padding: 0;
-        width: 24px;
-        height: 24px;
-        line-height: 20px;
-        border-radius: 4px;
-        transition: background-color 0.2s;
-    `;
-    closeButton.onmouseover = () => closeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-    closeButton.onmouseout = () => closeButton.style.backgroundColor = 'transparent';
     closeButton.onclick = (e) => {
         e.stopPropagation();
         clearCustomTooltip(chart);
@@ -344,11 +384,11 @@ function showCustomTooltip(chart, element, title, label) {
 
     // Create tooltip content
     const titleDiv = document.createElement('div');
-    titleDiv.style.cssText = 'font-weight: bold; font-size: 16px; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 4px; padding-right: 24px;';
+    titleDiv.className = 'chart-tooltip-title';
     titleDiv.textContent = title;
 
     const labelDiv = document.createElement('div');
-    labelDiv.style.cssText = 'padding-right: 24px;';
+    labelDiv.className = 'chart-tooltip-label';
     labelDiv.textContent = label;
 
     tooltip.appendChild(closeButton);
@@ -369,7 +409,7 @@ function showCustomTooltip(chart, element, title, label) {
     // Store reference for cleanup
     chart._customTooltip = tooltip;
 
-    // Adjust position if tooltip goes off screen
+    // Adjust position if tooltip goes off screen and trigger animation
     setTimeout(() => {
         const tooltipRect = tooltip.getBoundingClientRect();
         if (tooltipRect.right > window.innerWidth) {
@@ -378,6 +418,11 @@ function showCustomTooltip(chart, element, title, label) {
         if (tooltipRect.top < 0) {
             tooltip.style.top = (tooltipY + 120) + 'px';
         }
+
+        // Trigger fade-in animation
+        requestAnimationFrame(() => {
+            tooltip.classList.add('show');
+        });
     }, 0);
 
     // Add global click handler to close tooltip when clicking outside
@@ -398,19 +443,41 @@ function showCustomTooltip(chart, element, title, label) {
 }
 
 /**
- * Clear custom tooltip
+ * Clear custom tooltip with fade-out animation
+ * @param {boolean} immediate - If true, remove immediately without animation
  */
-function clearCustomTooltip(chart) {
-    // Remove tooltip element
-    if (chart._customTooltip) {
-        chart._customTooltip.remove();
-        chart._customTooltip = null;
-    }
-
-    // Remove global click listener
+function clearCustomTooltip(chart, immediate = false) {
+    // Remove global click listener first
     if (chart._tooltipClickHandler) {
         document.removeEventListener('click', chart._tooltipClickHandler);
         chart._tooltipClickHandler = null;
+    }
+
+    // Remove tooltip element
+    if (chart._customTooltip) {
+        const tooltip = chart._customTooltip;
+
+        if (immediate) {
+            // Immediate removal without animation
+            if (tooltip.parentNode) {
+                tooltip.remove();
+            }
+            chart._customTooltip = null;
+        } else {
+            // Add fade-out animation before removal
+            tooltip.classList.remove('show');
+            tooltip.classList.add('hiding');
+
+            // Clear reference immediately to prevent multiple tooltips
+            chart._customTooltip = null;
+
+            // Remove after animation completes
+            setTimeout(() => {
+                if (tooltip.parentNode) {
+                    tooltip.remove();
+                }
+            }, 150); // Match the transition duration in CSS
+        }
     }
 }
 
@@ -457,23 +524,26 @@ function createChartOptions(config, isEnsemble) {
                     },
                     label: (tooltipItem) => {
                         let value = tooltipItem.parsed.y?.toFixed(2) || "N/A";
+                        const numValue = parseFloat(value);
                         let label = `${tooltipItem.dataset.label}: ${value}`;
 
-                        // Add SPI interpretation
-                        if (config.varType?.startsWith("SPI")) {
-                            const numValue = parseFloat(value);
-                            if (!isNaN(numValue)) {
-                                if (numValue > 2) label += " | Extremely Wet";
-                                else if (numValue > 1.5) label += " | Very Wet";
-                                else if (numValue > 1)
-                                    label += " | Moderately Wet";
-                                else if (numValue < -2)
-                                    label += " | Extremely Dry";
-                                else if (numValue < -1.5)
-                                    label += " | Severely Dry";
-                                else if (numValue < -1)
-                                    label += " | Moderately Dry";
-                            }
+                        // Check if this is a missing value and show appropriate message
+                        if (!isNaN(numValue) && isMissingValue(numValue, config.varType)) {
+                            const missingMessage = getMissingValueMessage(config.varType);
+                            label += ` | ${missingMessage}`;
+                        }
+                        // Add SPI interpretation for non-missing values
+                        else if (config.varType?.startsWith("SPI") && !isNaN(numValue)) {
+                            if (numValue > 2) label += " | Extremely Wet";
+                            else if (numValue > 1.5) label += " | Very Wet";
+                            else if (numValue > 1)
+                                label += " | Moderately Wet";
+                            else if (numValue < -2)
+                                label += " | Extremely Dry";
+                            else if (numValue < -1.5)
+                                label += " | Severely Dry";
+                            else if (numValue < -1)
+                                label += " | Moderately Dry";
                         }
 
                         return label;
@@ -628,7 +698,9 @@ function getSeriesLabel(series) {
         ensemble: `Ensemble ${series.ensembleIndex}`,
         mean: "Mean",
         min: "Min",
-        max: "Max"
+        max: "Max",
+        l95: "L95",
+        h95: "H95"
     };
 
     return labels[series.plotType] || series.plotType;
@@ -642,7 +714,9 @@ function getSeriesColor(series) {
         singleValue: "rgba(75, 192, 192, 1)",
         mean: "rgba(75, 192, 192, 1)",
         min: "rgba(54, 162, 235, 1)",
-        max: "rgba(255, 99, 132, 1)"
+        max: "rgba(255, 99, 132, 1)",
+        l95: "rgba(255, 159, 64, 1)",
+        h95: "rgba(153, 102, 255, 1)"
     };
 
     if (series.plotType === "ensemble") {
@@ -673,6 +747,8 @@ function getSeriesBorderWidth(series) {
         mean: 3,
         min: 2,
         max: 2,
+        l95: 2,
+        h95: 2,
         ensemble: 1
     };
 

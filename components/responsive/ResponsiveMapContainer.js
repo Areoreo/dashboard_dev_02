@@ -21,20 +21,30 @@ export const ResponsiveMapContainer = ({
   mapLoading,
   errorMessage
 }) => {
+  console.log("\n=== ResponsiveMapContainer Render ===");
+  console.log("[ResponsiveMapContainer] Props:");
+  console.log("  - mapData:", mapData);
+  console.log("  - options:", options);
+  console.log("  - selectedDate:", selectedDate);
+  console.log("  - mapLoading:", mapLoading);
+  console.log("  - errorMessage:", errorMessage);
+
   const [isMobile, setIsMobile] = useState(false);
-  
+
   // Check if mobile on component mount and window resize
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      console.log("[ResponsiveMapContainer] Device type:", mobile ? "📱 Mobile" : "💻 Desktop");
     };
-    
+
     // Set initial value
     checkMobile();
-    
+
     // Add event listener
     window.addEventListener("resize", checkMobile);
-    
+
     // Clean up
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
@@ -81,12 +91,16 @@ export const ResponsiveMapContainer = ({
 
       {/* Map loading overlay */}
       {mapLoading && (
-        <div className="map-loading-overlay">
-          <div className="map-loading-spinner"></div>
-        </div>
+        <>
+          {console.log("[ResponsiveMapContainer] ⏳ Showing loading overlay")}
+          <div className="map-loading-overlay">
+            <div className="map-loading-spinner"></div>
+          </div>
+        </>
       )}
 
       {/* The map itself */}
+      {console.log("[ResponsiveMapContainer] 🗺️ Rendering DashMapTif")}
       <DashMapTif
         data={mapData}
         options={options}
@@ -96,6 +110,7 @@ export const ResponsiveMapContainer = ({
         setSelectedProvince={setSelectedProvince}
         setTimeSeries={setTimeSeries}
       />
+      {console.log("=== End ResponsiveMapContainer Render ===\n")}
 
       {/* Responsive scroll button - more prominent on mobile */}
       ${isMobile && (

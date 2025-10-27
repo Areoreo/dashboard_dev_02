@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
 import * as L from "leaflet";
 import { AlertMarker } from "@components/AlertMarker";
-import { getColor, getThresholds, getFeatureCenter } from "@utils/colorUtils";
+import { getColor, getThresholds, getFeatureCenter } from "@utils/colorUtils_v2";
 
 export const GeojsonLayer = ({
     data_url,
@@ -110,16 +110,17 @@ export const GeojsonLayer = ({
                 // Determine if this is a high or low alert
                 const isHigh = value > thresholds.high;
 
+                // Format value with proper type checking
+                const formattedValue = typeof value === 'number' && !isNaN(value)
+                    ? value.toFixed(2)
+                    : String(value);
+
                 return {
                     position: center,
                     type: isHigh ? "high" : "low",
                     message: isHigh
-                        ? `${thresholds.highMessage}: ${value.toFixed(2)}${
-                              thresholds.unit
-                          }`
-                        : `${thresholds.lowMessage}: ${value.toFixed(2)}${
-                              thresholds.unit
-                          }`,
+                        ? `${thresholds.highMessage}: ${formattedValue}${thresholds.unit}`
+                        : `${thresholds.lowMessage}: ${formattedValue}${thresholds.unit}`,
                     name: name,
                     value: value
                 };
@@ -186,21 +187,15 @@ export const GeojsonLayer = ({
             });
         };
 
-        // Fetch GeoJSON data
-        fetch(data_url.url)
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(
-                        `Network response was not ok (${response.status})`
-                    );
-                }
-                return response.json();
-            })
-            .then((data) => {
-                if (!data || !data.features) {
-                    throw new Error("Invalid GeoJSON data received");
-                }
-                console.log("Received GeoJSON data:", data);
+        // Use passed GeoJSON data directly (no fetch needed - data already loaded by parent)
+        const processGeoJSONData = () => {
+            const data = data_url.data;
+
+            if (!data || !data.features) {
+                console.error("Invalid GeoJSON data received:", data);
+                return;
+            }
+            console.log("Processing GeoJSON data (no fetch - using passed data):", data);
 
                 // Process features to identify alerts based on thresholds
                 processAlerts(data.features, selectedDate);
@@ -211,7 +206,7 @@ export const GeojsonLayer = ({
                 }
 
                 const geojsonLayer = L.geoJSON(data, {
-                    style: styleGeoJSON,
+                    style: styleGeoJSON,  // SINGLE source of truth for styling
                     onEachFeature: function (feature, layer) {
                         // Get current feature value and name
                         const value =
@@ -220,96 +215,69 @@ export const GeojsonLayer = ({
                             0;
                         const name = feature.properties.name;
 
-                        // Create color options for tooltips
-                        const colorOptions = {
-                            varType: data_url.data_vartype,
-                            adminLevel: data_url.data_adminLevel,
-                            dateType: data_url.data_dateType
-                        };
-
-                        // Bind tooltip
+                        // Bind tooltip with proper type checking
                         layer.bindTooltip(
                             `<b>${name}</b><br>${options.varType}: ${
-                                value !== undefined ? value.toFixed(2) : "N/A"
+                                typeof value === 'number' && !isNaN(value) ? value.toFixed(2) : "N/A"
                             }`,
                             { direction: "top", sticky: true }
                         );
 
-                        // Default style
-                        layer.setStyle({
-                            fillColor: getColor(value, colorOptions),
-                            color: "#666",
-                            weight: 2,
-                            fillOpacity: 0.7,
-                            dashArray: "3"
-                        });
+                        // === CONSOLIDATED EVENT HANDLERS (NO DUPLICATE STYLE APPLICATIONS) ===
 
-                        // Hover highlight
+                        // SINGLE mouseover handler
                         layer.on("mouseover", () => {
+                            // Update border style for highlight
                             layer.setStyle({
                                 color: "#EB5A3C",
                                 weight: 4
                             });
+
+                            // Update info control
+                            if (infoRef.current) {
+                                infoRef.current.update(
+                                    "<b>" + name + "</b><br>" +
+                                    (feature.properties.region || "")
+                                );
+                            }
+
+                            highlightRef.current = layer;
                         });
 
-                        // Mouse out event
+                        // SINGLE mouseout handler
                         layer.on("mouseout", () => {
+                            // Only reset if not selected
                             if (selectedFeature !== feature) {
-                                layer.setStyle(styleGeoJSON(feature));
+                                // Reset border style (don't recompute fill color)
+                                layer.setStyle({
+                                    color: "#666",
+                                    weight: 2
+                                });
                             }
+
+                            // Reset info control
+                            if (infoRef.current) {
+                                infoRef.current.update();
+                            }
+
+                            highlightRef.current = null;
                         });
 
                         // Click event
                         layer.on("click", () => {
                             removeBoundingBox();
-                            if (
-                                selectedFeature &&
-                                selectedFeature !== feature
-                            ) {
-                                resetFeatureStyle(layer, selectedFeature);
-                            }
                             handleFeatureClick(feature, layer);
                             handleProvClickToGenerateTimeSeries(feature);
-                        });
-
-                        // Update info control on mouseover
-                        layer.on("mouseover", function (e) {
-                            infoRef.current.update(
-                                "<b>" +
-                                    feature.properties.name +
-                                    "</b><br>" +
-                                    feature.properties.region
-                            );
-
-                            // Highlight the feature
-                            layer.setStyle(highlightStyle);
-                            highlightRef.current = layer;
-                        });
-
-                        // Reset info control on mouseout
-                        layer.on("mouseout", function (e) {
-                            if (infoRef.current) {
-                                infoRef.current.update();
-                            }
-
-                            // Reset the feature style
-                            if (
-                                highlightRef.current &&
-                                selectedFeature !== feature
-                            ) {
-                                highlightRef.current.setStyle(
-                                    styleGeoJSON(feature)
-                                );
-                                highlightRef.current = null;
-                            }
                         });
                     }
                 });
 
-                geojsonLayer.addTo(map);
-                geoJsonLayerRef.current = geojsonLayer; // Store the new layer
-            })
-            .catch((error) => console.error("Error loading GeoJSON:", error));
+            geojsonLayer.addTo(map);
+            geoJsonLayerRef.current = geojsonLayer; // Store the new layer
+        };
+
+        // Execute data processing
+        processGeoJSONData();
 
         // Clean up on unmount
         return () => {
@@ -323,9 +291,8 @@ export const GeojsonLayer = ({
     }, [
         map,
         selectedDate,
-        data_url.url,
-        options,
-        selectedFeature,
+        data_url?.url,  // Use URL as stable identifier instead of data object
+        data_url?.data_vartype,  // Use primitive values for stable comparison
         setSelectedFeature,
         setSelectedProvince,
         setTimeSeries

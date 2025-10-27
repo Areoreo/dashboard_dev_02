@@ -285,9 +285,9 @@ function getAreaColor(value, adminLevel) {
     if (adminLevel === "Country") {
         minVal = 2000000; // 2 million hectares for country
     } else if (adminLevel === "Prov") {
-        minVal = 100000; // 200,000 hectares for province
+        minVal = 0; // START FROM 0 for province level - many provinces have low rice area
     } else {
-        minVal = 0; // 2,000 hectares for grid cells
+        minVal = 0; // 0 hectares for grid cells
     }
 
     if (adminLevel === "Country") {

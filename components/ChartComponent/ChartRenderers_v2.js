@@ -6,7 +6,10 @@
 
 import Chart from "chart.js/auto";
 import "chartjs-adapter-date-fns";
-import { isMissingValue, getMissingValueMessage } from "@utils/missingValueConfig";
+import {
+    isMissingValue,
+    getMissingValueMessage
+} from "@utils/missingValueConfig";
 
 /**
  * Format date for tooltip based on dateType
@@ -17,7 +20,7 @@ import { isMissingValue, getMissingValueMessage } from "@utils/missingValueConfi
 const formatTooltipDate = (dateValue, dateType = "Yearly") => {
     // Convert timestamp to Date if needed
     let date = dateValue;
-    if (typeof dateValue === 'number') {
+    if (typeof dateValue === "number") {
         date = new Date(dateValue);
     }
 
@@ -28,14 +31,40 @@ const formatTooltipDate = (dateValue, dateType = "Yearly") => {
             return date.getFullYear().toString();
         } else if (dateType === "Monthly") {
             // Format: "May, 1983"
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthNames = [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec"
+            ];
             return `${monthNames[date.getMonth()]}, ${date.getFullYear()}`;
         } else if (dateType === "Daily") {
             // Format: "May 15, 1983"
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            return `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            const monthNames = [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec"
+            ];
+            return `${
+                monthNames[date.getMonth()]
+            } ${date.getDate()}, ${date.getFullYear()}`;
         }
     }
 
@@ -67,7 +96,11 @@ export function createChart(canvas, series, config, chartInstanceRef) {
         (s) => s.plotType === "ensemble" || s.plotType === "mean"
     );
     const hasStatistics = series.some(
-        (s) => s.plotType === "min" || s.plotType === "max" || s.plotType === "l95" || s.plotType === "h95"
+        (s) =>
+            s.plotType === "min" ||
+            s.plotType === "max" ||
+            s.plotType === "l95" ||
+            s.plotType === "h95"
     );
 
     if (hasEnsemble || hasStatistics) {
@@ -109,12 +142,18 @@ export function createTimeSeriesChart(ctx, series, config, chartInstanceRef) {
         .filter(Boolean);
 
     // Extract all data values for y-axis scaling
-    const allDataValues = series.flatMap(s =>
-        s.timeSeriesData?.map(entry => entry.value).filter(v => v !== null && v !== undefined) || []
+    const allDataValues = series.flatMap(
+        (s) =>
+            s.timeSeriesData
+                ?.map((entry) => entry.value)
+                .filter((v) => v !== null && v !== undefined) || []
     );
 
     // Create chart options with data values
-    const chartOptions = createChartOptions({...config, dataValues: allDataValues}, false);
+    const chartOptions = createChartOptions(
+        { ...config, dataValues: allDataValues },
+        false
+    );
 
     // Add background plugin for SPI shading
     const backgroundPlugin = createBackgroundPlugin(config);
@@ -207,9 +246,13 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
     }
 
     // Add l95 dataset (lower 95% CI)
-    if (l95Series && l95Series.timeSeriesData && l95Series.timeSeriesData.some(entry => entry.value !== null)) {
+    if (
+        l95Series &&
+        l95Series.timeSeriesData &&
+        l95Series.timeSeriesData.some((entry) => entry.value !== null)
+    ) {
         datasets.push({
-            label: "L95",
+            label: "Lower 95% CI",
             data: l95Series.timeSeriesData.map((entry) => ({
                 x: entry.date,
                 y: entry.value
@@ -227,9 +270,13 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
     }
 
     // Add h95 dataset (higher 95% CI)
-    if (h95Series && h95Series.timeSeriesData && h95Series.timeSeriesData.some(entry => entry.value !== null)) {
+    if (
+        h95Series &&
+        h95Series.timeSeriesData &&
+        h95Series.timeSeriesData.some((entry) => entry.value !== null)
+    ) {
         datasets.push({
-            label: "H95",
+            label: "Upper 95% CI",
             data: h95Series.timeSeriesData.map((entry) => ({
                 x: entry.date,
                 y: entry.value
@@ -287,12 +334,18 @@ export function createEnsembleChart(ctx, series, config, chartInstanceRef) {
     }
 
     // Extract all data values for y-axis scaling (from all series)
-    const allDataValues = series.flatMap(s =>
-        s.timeSeriesData?.map(entry => entry.value).filter(v => v !== null && v !== undefined) || []
+    const allDataValues = series.flatMap(
+        (s) =>
+            s.timeSeriesData
+                ?.map((entry) => entry.value)
+                .filter((v) => v !== null && v !== undefined) || []
     );
 
     // Create chart options with data values
-    const chartOptions = createChartOptions({...config, dataValues: allDataValues}, true);
+    const chartOptions = createChartOptions(
+        { ...config, dataValues: allDataValues },
+        true
+    );
 
     // Add background plugin for SPI shading
     const backgroundPlugin = createBackgroundPlugin(config);
@@ -370,25 +423,25 @@ function showCustomTooltip(chart, element, title, label) {
     const position = element.element.tooltipPosition();
 
     // Create tooltip container
-    const tooltip = document.createElement('div');
-    tooltip.className = 'chart-custom-tooltip';
+    const tooltip = document.createElement("div");
+    tooltip.className = "chart-custom-tooltip";
 
     // Create close button
-    const closeButton = document.createElement('button');
-    closeButton.className = 'chart-tooltip-close';
-    closeButton.innerHTML = '×';
+    const closeButton = document.createElement("button");
+    closeButton.className = "chart-tooltip-close";
+    closeButton.innerHTML = "×";
     closeButton.onclick = (e) => {
         e.stopPropagation();
         clearCustomTooltip(chart);
     };
 
     // Create tooltip content
-    const titleDiv = document.createElement('div');
-    titleDiv.className = 'chart-tooltip-title';
+    const titleDiv = document.createElement("div");
+    titleDiv.className = "chart-tooltip-title";
     titleDiv.textContent = title;
 
-    const labelDiv = document.createElement('div');
-    labelDiv.className = 'chart-tooltip-label';
+    const labelDiv = document.createElement("div");
+    labelDiv.className = "chart-tooltip-label";
     labelDiv.textContent = label;
 
     tooltip.appendChild(closeButton);
@@ -400,8 +453,8 @@ function showCustomTooltip(chart, element, title, label) {
     const tooltipX = canvasRect.left + position.x + window.scrollX;
     const tooltipY = canvasRect.top + position.y + window.scrollY - 100; // Offset above point
 
-    tooltip.style.left = tooltipX + 'px';
-    tooltip.style.top = tooltipY + 'px';
+    tooltip.style.left = tooltipX + "px";
+    tooltip.style.top = tooltipY + "px";
 
     // Add to document
     document.body.appendChild(tooltip);
@@ -413,15 +466,15 @@ function showCustomTooltip(chart, element, title, label) {
     setTimeout(() => {
         const tooltipRect = tooltip.getBoundingClientRect();
         if (tooltipRect.right > window.innerWidth) {
-            tooltip.style.left = (tooltipX - tooltipRect.width - 20) + 'px';
+            tooltip.style.left = tooltipX - tooltipRect.width - 20 + "px";
         }
         if (tooltipRect.top < 0) {
-            tooltip.style.top = (tooltipY + 120) + 'px';
+            tooltip.style.top = tooltipY + 120 + "px";
         }
 
         // Trigger fade-in animation
         requestAnimationFrame(() => {
-            tooltip.classList.add('show');
+            tooltip.classList.add("show");
         });
     }, 0);
 
@@ -438,7 +491,7 @@ function showCustomTooltip(chart, element, title, label) {
 
     // Add listener with slight delay to avoid immediate triggering
     setTimeout(() => {
-        document.addEventListener('click', outsideClickHandler);
+        document.addEventListener("click", outsideClickHandler);
     }, 100);
 }
 
@@ -449,7 +502,7 @@ function showCustomTooltip(chart, element, title, label) {
 function clearCustomTooltip(chart, immediate = false) {
     // Remove global click listener first
     if (chart._tooltipClickHandler) {
-        document.removeEventListener('click', chart._tooltipClickHandler);
+        document.removeEventListener("click", chart._tooltipClickHandler);
         chart._tooltipClickHandler = null;
     }
 
@@ -465,8 +518,8 @@ function clearCustomTooltip(chart, immediate = false) {
             chart._customTooltip = null;
         } else {
             // Add fade-out animation before removal
-            tooltip.classList.remove('show');
-            tooltip.classList.add('hiding');
+            tooltip.classList.remove("show");
+            tooltip.classList.add("hiding");
 
             // Clear reference immediately to prevent multiple tooltips
             chart._customTooltip = null;
@@ -491,12 +544,12 @@ function createChartOptions(config, isEnsemble) {
         interaction: {
             mode: isEnsemble ? "point" : "index", // Use 'point' for ensemble to show individual tooltips
             intersect: false,
-            axis: 'xy' // Consider both x and y proximity for better tooltip trigger
+            axis: "xy" // Consider both x and y proximity for better tooltip trigger
         },
         hover: {
             mode: isEnsemble ? "nearest" : "index",
             intersect: false,
-            axis: 'xy'
+            axis: "xy"
         },
         plugins: {
             title: {
@@ -528,18 +581,24 @@ function createChartOptions(config, isEnsemble) {
                         let label = `${tooltipItem.dataset.label}: ${value}`;
 
                         // Check if this is a missing value and show appropriate message
-                        if (!isNaN(numValue) && isMissingValue(numValue, config.varType)) {
-                            const missingMessage = getMissingValueMessage(config.varType);
+                        if (
+                            !isNaN(numValue) &&
+                            isMissingValue(numValue, config.varType)
+                        ) {
+                            const missingMessage = getMissingValueMessage(
+                                config.varType
+                            );
                             label += ` | ${missingMessage}`;
                         }
                         // Add SPI interpretation for non-missing values
-                        else if (config.varType?.startsWith("SPI") && !isNaN(numValue)) {
+                        else if (
+                            config.varType?.startsWith("SPI") &&
+                            !isNaN(numValue)
+                        ) {
                             if (numValue > 2) label += " | Extremely Wet";
                             else if (numValue > 1.5) label += " | Very Wet";
-                            else if (numValue > 1)
-                                label += " | Moderately Wet";
-                            else if (numValue < -2)
-                                label += " | Extremely Dry";
+                            else if (numValue > 1) label += " | Moderately Wet";
+                            else if (numValue < -2) label += " | Extremely Dry";
                             else if (numValue < -1.5)
                                 label += " | Severely Dry";
                             else if (numValue < -1)
@@ -584,9 +643,11 @@ function createChartOptions(config, isEnsemble) {
             }
         },
         // Add click event handler for ensemble charts
-        onClick: isEnsemble ? (event, activeElements, chart) => {
-            handleChartClick(event, activeElements, chart, config);
-        } : undefined
+        onClick: isEnsemble
+            ? (event, activeElements, chart) => {
+                  handleChartClick(event, activeElements, chart, config);
+              }
+            : undefined
     };
 
     // Apply Y-axis constraints for SPI with auto-scaling
@@ -679,10 +740,14 @@ function createInstructionPlugin() {
             ctx.save();
 
             // Draw instruction text at top-right corner
-            ctx.font = '12px Arial';
-            ctx.fillStyle = 'rgba(100, 100, 100, 0.6)';
-            ctx.textAlign = 'right';
-            ctx.fillText('💡 Click on a point to view details', chartArea.right - 10, chartArea.top - 10);
+            ctx.font = "12px Arial";
+            ctx.fillStyle = "rgba(100, 100, 100, 0.6)";
+            ctx.textAlign = "right";
+            ctx.fillText(
+                "💡 Click on a point to view details",
+                chartArea.right - 10,
+                chartArea.top - 10
+            );
 
             ctx.restore();
         }

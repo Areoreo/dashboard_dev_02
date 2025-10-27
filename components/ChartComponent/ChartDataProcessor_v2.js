@@ -5,7 +5,11 @@
  * This version is cleaner and more maintainable than the original processor.
  */
 
-import { processTimeSeriesData, getYearRange, filterSeriesByYearRange } from "./TimeSeriesProcessor";
+import {
+    processTimeSeriesData,
+    getYearRange,
+    filterSeriesByYearRange
+} from "./TimeSeriesProcessor";
 
 /**
  * Process feature data into chart-ready format
@@ -30,7 +34,7 @@ export function processFeatureForChart(feature, options) {
     const { series, config } = processTimeSeriesData(feature, options);
 
     // Flatten nested arrays (ensemble series)
-    const flattenedSeries = series.flatMap(s => Array.isArray(s) ? s : [s]);
+    const flattenedSeries = series.flatMap((s) => (Array.isArray(s) ? s : [s]));
 
     // Get year range
     const yearRange = getYearRange(flattenedSeries);
@@ -76,9 +80,9 @@ export function getAvailableYears(series) {
 
     const years = new Set();
 
-    series.forEach(s => {
+    series.forEach((s) => {
         if (s.timeSeriesData) {
-            s.timeSeriesData.forEach(entry => {
+            s.timeSeriesData.forEach((entry) => {
                 if (entry.year) {
                     years.add(entry.year);
                 }
@@ -97,25 +101,27 @@ export function getAvailableYears(series) {
  */
 export function detectChartType(series) {
     if (!series || series.length === 0) {
-        return 'standard';
+        return "standard";
     }
 
     // Check if any series has ensemble data
-    const hasEnsemble = series.some(s => s.plotType === 'ensemble' || s.plotType === 'mean');
+    const hasEnsemble = series.some(
+        (s) => s.plotType === "ensemble" || s.plotType === "mean"
+    );
 
     if (hasEnsemble) {
-        return 'ensemble';
+        return "ensemble";
     }
 
     // Check if data has monthly granularity
-    const hasMonthlyData = series.some(s => {
+    const hasMonthlyData = series.some((s) => {
         if (!s.timeSeriesData || s.timeSeriesData.length === 0) {
             return false;
         }
-        return s.timeSeriesData.some(entry => entry.month && entry.month > 1);
+        return s.timeSeriesData.some((entry) => entry.month && entry.month > 1);
     });
 
-    return hasMonthlyData ? 'timeSeries' : 'standard';
+    return hasMonthlyData ? "timeSeries" : "standard";
 }
 
 /**
@@ -127,51 +133,54 @@ export function detectChartType(series) {
  */
 export function exportToCSV(series, config) {
     if (!series || series.length === 0) {
-        return '';
+        return "";
     }
 
     const rows = [];
 
     // Header
-    const headers = ['Date', 'Year', 'Month'];
-    const seriesNames = series.map(s => getSeriesLabel(s));
+    const headers = ["Date", "Year", "Month"];
+    const seriesNames = series.map((s) => getSeriesLabel(s));
     headers.push(...seriesNames);
-    rows.push(headers.join(','));
+    rows.push(headers.join(","));
 
     // Collect all unique dates
     const datesMap = new Map();
 
     series.forEach((s, seriesIndex) => {
         if (s.timeSeriesData) {
-            s.timeSeriesData.forEach(entry => {
+            s.timeSeriesData.forEach((entry) => {
                 const dateKey = entry.date.toISOString();
                 if (!datesMap.has(dateKey)) {
                     datesMap.set(dateKey, {
                         date: entry.date,
                         year: entry.year,
                         month: entry.month,
-                        values: new Array(series.length).fill('')
+                        values: new Array(series.length).fill("")
                     });
                 }
-                datesMap.get(dateKey).values[seriesIndex] = entry.value !== null ? entry.value : '';
+                datesMap.get(dateKey).values[seriesIndex] =
+                    entry.value !== null ? entry.value : "";
             });
         }
     });
 
     // Sort by date and create rows
-    const sortedDates = Array.from(datesMap.values()).sort((a, b) => a.date - b.date);
+    const sortedDates = Array.from(datesMap.values()).sort(
+        (a, b) => a.date - b.date
+    );
 
-    sortedDates.forEach(dateEntry => {
+    sortedDates.forEach((dateEntry) => {
         const row = [
-            dateEntry.date.toISOString().split('T')[0],
+            dateEntry.date.toISOString().split("T")[0],
             dateEntry.year,
             dateEntry.month,
             ...dateEntry.values
         ];
-        rows.push(row.join(','));
+        rows.push(row.join(","));
     });
 
-    return rows.join('\n');
+    return rows.join("\n");
 }
 
 /**
@@ -179,13 +188,13 @@ export function exportToCSV(series, config) {
  */
 function getSeriesLabel(series) {
     const typeLabels = {
-        'singleValue': 'Value',
-        'ensemble': `Ensemble ${series.ensembleIndex}`,
-        'mean': 'Mean',
-        'min': 'Min',
-        'max': 'Max',
-        'l95': 'L95',
-        'h95': 'H95'
+        singleValue: "Value",
+        ensemble: `Ensemble ${series.ensembleIndex}`,
+        mean: "Mean",
+        min: "Min",
+        max: "Max",
+        l95: "L95",
+        h95: "H95"
     };
 
     return typeLabels[series.plotType] || series.plotType;

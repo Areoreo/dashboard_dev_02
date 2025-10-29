@@ -36,7 +36,7 @@ const StatisticsTable = dynamic(() => import("@components/StatisticsTable"), {
 const getCurrentDateInfo = () => {
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1 + 1; // getMonth() returns 0-11, so add 1
+    const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
 
     // Format month with leading zero (e.g., "04" instead of "4")
     const formattedMonth = String(currentMonth).padStart(2, "0");

@@ -360,6 +360,16 @@ function getChartTitle(varType, adminLevel) {
  * Get Y-axis label
  */
 function getYAxisLabel(varType, colorConfig) {
+    // Override labels for Production and Area to use actual units, not scaled units
+    const overrideLabels = {
+        'Production': 'Production (ton)',
+        'Area': 'Area (ha)'
+    };
+
+    if (overrideLabels[varType]) {
+        return overrideLabels[varType];
+    }
+
     if (colorConfig && colorConfig.title) {
         return colorConfig.title;
     }

@@ -313,20 +313,20 @@ export const COLOR_MAP_CONFIGS = {
         colormapType: "discrete",
         colorType: "rgbColorCode",
         colorSeries: [
-            "#1a9850", // Significantly Above Normal
-            "#74add1", // Moderately Above Normal
-            "#d9d9d9", // Near Normal
-            "#f46d43", // Moderately Below Normal
-            "#a50026" // Significantly Below Normal
+            "#a50026", // Significantly Below Normal (red)
+            "#f46d43", // Moderately Below Normal (orange)
+            "#d9d9d9", // Near Normal (grey)
+            "#74add1", // Moderately Above Normal (blue)
+            "#1a9850" // Significantly Above Normal (green)
         ],
         thresholds: [-5.0, -1.199, -0.3995, 0.4001, 1.1987, 5.0],
         legendGrades: [1.5, 0.3, -0.3, -1.199, -5],
         legendLabels: [
-            "Significantly Above Normal",
-            "Moderately Above Normal",
-            "Near Normal",
+            "Significantly Below Normal",
             "Moderately Below Normal",
-            "Significantly Below Normal"
+            "Near Normal",
+            "Moderately Above Normal",
+            "Significantly Above Normal"
         ],
         title: "Yield Anomaly (Z-score)",
         unit: "",

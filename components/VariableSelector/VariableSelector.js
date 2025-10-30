@@ -15,7 +15,7 @@ export const VariableSelector = ({ selectedVar, updateOption }) => {
         { value: "SPI3", label: "Drought Index (3 months)" },
         { value: "SPI6", label: "Drought Index (6 months)" },
         { value: "SPI12", label: "Drought Index (12 months)" },
-        { value: "smpct1", label: "Soil Moisture Percentile" },
+        // { value: "smpct1", label: "Soil Moisture Percentile" },
         { value: "Prcp", label: "Precipitation" },
         { value: "Temp", label: "Temperature" }
     ];

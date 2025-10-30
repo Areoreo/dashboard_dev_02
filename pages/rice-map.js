@@ -36,7 +36,7 @@ const StatisticsTable = dynamic(() => import("@components/StatisticsTable"), {
 const getCurrentDateInfo = () => {
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
+    const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1 for next month
 
     // Format month with leading zero (e.g., "04" instead of "4")
     const formattedMonth = String(currentMonth).padStart(2, "0");
@@ -54,35 +54,69 @@ const getCurrentDateInfo = () => {
 };
 
 /**
+ * Determine if a given date is historical, current, or forecast
+ * @param {string} selectedYear - Selected year as string
+ * @param {string} selectedMonth - Selected month as string (with leading zero)
+ * @returns {string} "hist", "current", or "forecast"
+ */
+const getDateType = (selectedYear, selectedMonth) => {
+    const currentInfo = getCurrentDateInfo();
+    const selectedDate = parseInt(`${selectedYear}${selectedMonth}`);
+    const currentDate = parseInt(currentInfo.dateString);
+
+    if (selectedDate < currentDate) {
+        return "hist";
+    } else if (selectedDate === currentDate) {
+        return "current";
+    } else {
+        return "forecast";
+    }
+};
+
+/**
+ * Get default forecast date (1 month after current)
+ * @returns {Object} Default forecast year and month
+ */
+const getDefaultForecastDate = () => {
+    const currentInfo = getCurrentDateInfo();
+    let forecastYear = currentInfo.year;
+    let forecastMonth = currentInfo.month + 1;
+
+    // Handle year rollover
+    if (forecastMonth > 12) {
+        forecastMonth = 1;
+        forecastYear += 1;
+    }
+
+    return {
+        yearString: String(forecastYear),
+        monthString: String(forecastMonth).padStart(2, "0"),
+        dateString: `${forecastYear}${String(forecastMonth).padStart(2, "0")}`
+    };
+};
+
+/**
  * Get intelligent default dates based on overview type
  * @param {string} overview - "forecast" or "hist"
  * @returns {Object} Default year and month for the given overview type
  */
 const getDefaultDates = (overview = "forecast") => {
-    const current = getCurrentDateInfo();
-
     if (overview === "forecast") {
-        // For forecast, use current date or next month if we're near month end
-        // This ensures we always have recent/relevant forecast data
-        return {
-            year: current.yearString,
-            month: current.monthString
-        };
+        // For forecast, use 1 month after current date
+        return getDefaultForecastDate();
     } else {
-        // For historical data, use a recent historical date
-        // You can adjust this logic based on your data availability
-        const historicalYear = current.year - 1; // Use previous year for historical
+        // For historical data, use a fixed historical date
         return {
-            year: String(historicalYear),
-            month: current.monthString
+            year: "2000",
+            month: "04",
+            dateString: "200004"
         };
     }
 };
 
 export default function Home() {
-    // Get dynamic default dates
+    // Get current date info for default initialization
     const currentDateInfo = getCurrentDateInfo();
-    const defaultDates = getDefaultDates("forecast"); // Since default overview is "forecast"
 
     // Add loading state variables
     const [isLoading, setIsLoading] = useState(false);
@@ -102,23 +136,14 @@ export default function Home() {
     const [currData, setCurrData] = useState([]);
     const [errorMessage, setErrorMessage] = useState("");
 
-    // ----Hardcoded date------
-    // const [options, setOptions] = useState({
-    //     varType: "Yield",
-    //     region: "SEA",
-    //     overview: "forecast",
-    //     adminLevel: "Grid",
-    //     dateType: "Monthly",
-    //     date: "202504"
-    // });
-
+    // Initialize with current date (activates "current" button on first load)
     const [options, setOptions] = useState({
         varType: "Yield",
         region: "SEA",
-        overview: "forecast",
+        overview: "forecast", // Current uses forecast overview
         adminLevel: "Grid",
         dateType: "Monthly",
-        date: currentDateInfo.dateString // Use dynamic date here
+        date: currentDateInfo.dateString // Use current date by default
     });
 
     // Removed redundant refs and states - data is now passed directly via mapData
@@ -127,17 +152,16 @@ export default function Home() {
     const [selectedProvince, setSelectedProvince] = useState(null);
     const [timeSeries, setTimeSeries] = useState([]);
 
-    // const [selectedDate, setSelectedDate] = useState("20100101");
-    // const [selectedYear, setSelectedYear] = useState("2025");
-    // const [selectedMonth, setSelectedMonth] = useState("04");
-    // const [selectedDay, setSelectedDay] = useState("01");
-
-    // Use dynamic defaults instead of hardcoded values
+    // Initialize with current date to activate "current" button
     const [selectedDate, setSelectedDate] = useState(
         currentDateInfo.dateString
     );
-    const [selectedYear, setSelectedYear] = useState(defaultDates.year);
-    const [selectedMonth, setSelectedMonth] = useState(defaultDates.month);
+    const [selectedYear, setSelectedYear] = useState(
+        currentDateInfo.yearString
+    );
+    const [selectedMonth, setSelectedMonth] = useState(
+        currentDateInfo.monthString
+    );
     const [selectedDay, setSelectedDay] = useState("01");
 
     const [selectedYearEnd, setSelectedYearEnd] = useState("2000");
@@ -319,97 +343,6 @@ export default function Home() {
     const updateOption = (key, value) => {
         setOptions((prev) => ({ ...prev, [key]: value }));
     };
-
-    // -------- deprecated, this part has been moved to inner ChartComponent ------------//
-    // Enhanced time series data extraction that handles both historical and forecast data
-    // useEffect(() => {
-    //     if (selectedFeature) {
-    //         const { properties } = selectedFeature;
-    //         console.log("AAA selectedFeature data structure:", selectedFeature);
-
-    //         // Check for different data patterns
-    //         const historicalKeys = Object.keys(properties).filter(
-    //             (key) => /^y\d+$/.test(key) && !/^y\d+_\d+$/.test(key)
-    //         );
-
-    //         const forecastKeys = Object.keys(properties).filter((key) =>
-    //             /^y\d+_\d+$/.test(key)
-    //         );
-
-    //         let extractedData = [];
-
-    //         // Process data based on the detected pattern
-    //         if (historicalKeys.length > 0) {
-    //             // Historical data pattern (y1990, y2000, etc.)
-    //             console.log(
-    //                 "Detected historical data pattern:",
-    //                 historicalKeys
-    //             );
-
-    //             extractedData = historicalKeys
-    //                 .map((key) => {
-    //                     const year = parseInt(key.substring(1), 10);
-    //                     const value = properties[key];
-    //                     return {
-    //                         year,
-    //                         value:
-    //                             typeof value === "number"
-    //                                 ? value
-    //                                 : parseFloat(value)
-    //                     };
-    //                 })
-    //                 .filter(
-    //                     (item) =>
-    //                         item.value !== null &&
-    //                         item.value !== undefined &&
-    //                         !isNaN(item.value)
-    //                 );
-
-    //             // Sort data chronologically
-    //             extractedData.sort((a, b) => a.year - b.year);
-    //         } else if (forecastKeys.length > 0) {
-    //             // Forecast data with ensembles pattern (y2025_1, y2025_2, etc.)
-    //             console.log("Detected forecast data pattern:", forecastKeys);
-
-    //             extractedData = forecastKeys
-    //                 .map((key) => {
-    //                     const match = key.match(/^y(\d+)_(\d+)$/);
-    //                     if (match) {
-    //                         return {
-    //                             year: parseInt(match[1], 10),
-    //                             ensemble: parseInt(match[2], 10),
-    //                             value:
-    //                                 typeof properties[key] === "number"
-    //                                     ? properties[key]
-    //                                     : parseFloat(properties[key])
-    //                         };
-    //                     }
-    //                     return null;
-    //                 })
-    //                 .filter(
-    //                     (item) =>
-    //                         item !== null &&
-    //                         item.value !== null &&
-    //                         item.value !== undefined &&
-    //                         !isNaN(item.value)
-    //                 );
-    //         }
-
-    //         console.log("Processed time series data:", extractedData);
-
-    //         if (extractedData.length > 0) {
-    //             setTimeSeries(extractedData);
-    //             setSelectedProvince(properties.name || "Selected Region");
-    //         } else {
-    //             console.warn(
-    //                 "No valid time series data found in properties:",
-    //                 properties
-    //             );
-    //             // You might want to show an error message to the user
-    //             setTimeSeries([]);
-    //         }
-    //     }
-    // }, [selectedFeature]);
 
     useEffect(() => {
         if (selectedFeature && selectedFeature.properties) {

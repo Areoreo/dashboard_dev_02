@@ -184,6 +184,69 @@ export function exportToCSV(series, config) {
 }
 
 /**
+ * Validate chart data to ensure it's reasonable for plotting
+ *
+ * @param {Array} series - Processed series data
+ * @returns {Object} Validation result with isValid flag and message
+ */
+export function validateChartData(series) {
+    if (!series || series.length === 0) {
+        return {
+            isValid: false,
+            message: "No data available for the selected region and time period."
+        };
+    }
+
+    // Check if all series are empty
+    const hasAnyData = series.some((s) => {
+        return s.timeSeriesData && s.timeSeriesData.length > 0;
+    });
+
+    if (!hasAnyData) {
+        return {
+            isValid: false,
+            message: "No time series data found for the selected region."
+        };
+    }
+
+    // Check if all values are null or undefined
+    const hasValidValues = series.some((s) => {
+        if (!s.timeSeriesData) return false;
+        return s.timeSeriesData.some(
+            (entry) => entry.value !== null && entry.value !== undefined && !isNaN(entry.value)
+        );
+    });
+
+    if (!hasValidValues) {
+        return {
+            isValid: false,
+            message: "All data values are missing or invalid for the selected region and time period."
+        };
+    }
+
+    // Check if we have enough data points (at least 2 for a meaningful chart)
+    const totalDataPoints = series.reduce((count, s) => {
+        if (!s.timeSeriesData) return count;
+        return count + s.timeSeriesData.filter(
+            (entry) => entry.value !== null && entry.value !== undefined && !isNaN(entry.value)
+        ).length;
+    }, 0);
+
+    if (totalDataPoints < 2) {
+        return {
+            isValid: false,
+            message: "Insufficient data points to generate a chart. At least 2 valid data points are required."
+        };
+    }
+
+    // Data is valid
+    return {
+        isValid: true,
+        message: null
+    };
+}
+
+/**
  * Get display label for a series
  */
 function getSeriesLabel(series) {

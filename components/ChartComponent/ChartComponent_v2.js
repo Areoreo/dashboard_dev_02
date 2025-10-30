@@ -16,7 +16,8 @@ import {
     processFeatureForChart,
     filterChartData,
     getAvailableYears,
-    exportToCSV
+    exportToCSV,
+    validateChartData
 } from "./ChartDataProcessor_v2";
 import { createChart } from "./ChartRenderers_v2";
 import { downloadImage } from "./ChartExportUtils";
@@ -34,6 +35,7 @@ export const ChartComponent_v2 = ({ selectedFeature, options }) => {
     const [availableYears, setAvailableYears] = useState([]);
     const [dataReady, setDataReady] = useState(false);
     const [showDownloadOptions, setShowDownloadOptions] = useState(false);
+    const [validationResult, setValidationResult] = useState({ isValid: true, message: null });
 
     // Process feature when it changes or options change
     useEffect(() => {
@@ -59,6 +61,7 @@ export const ChartComponent_v2 = ({ selectedFeature, options }) => {
             setSeries([]);
             setConfig({});
             setDataReady(false);
+            setValidationResult({ isValid: true, message: null });
             return;
         }
 
@@ -85,35 +88,57 @@ export const ChartComponent_v2 = ({ selectedFeature, options }) => {
             yearRange
         });
 
+        // Validate data before setting state
+        const validation = validateChartData(processedSeries);
+        setValidationResult(validation);
+
         // Update state
         setSeries(processedSeries);
         setConfig(chartConfig);
 
-        // Set year range
-        if (yearRange.startYear && yearRange.endYear) {
-            setStartYear(yearRange.startYear);
-            setEndYear(yearRange.endYear);
+        if (validation.isValid) {
+            // Set year range
+            if (yearRange.startYear && yearRange.endYear) {
+                setStartYear(yearRange.startYear);
+                setEndYear(yearRange.endYear);
+            }
+
+            // Get available years for selectors
+            const years = getAvailableYears(processedSeries);
+            setAvailableYears(years);
+
+            setDataReady(true);
+        } else {
+            // Reset state if data is invalid
+            setStartYear(null);
+            setEndYear(null);
+            setAvailableYears([]);
+            setDataReady(false);
+            setFilteredSeries([]);
         }
-
-        // Get available years for selectors
-        const years = getAvailableYears(processedSeries);
-        setAvailableYears(years);
-
-        setDataReady(true);
 
         console.log("=== End ChartComponent_v2 Processing ===\n");
     }, [selectedFeature, options]);
 
     // Filter series when year range changes
     useEffect(() => {
-        if (!series || series.length === 0 || !startYear || !endYear) {
+        if (!series || series.length === 0 || !startYear || !endYear || !validationResult.isValid) {
             return;
         }
 
         const filtered = filterChartData(series, startYear, endYear);
         console.log("[ChartComponent_v2] Filtered series:", filtered.length);
-        setFilteredSeries(filtered);
-    }, [series, startYear, endYear]);
+
+        // Validate filtered data as well
+        const filteredValidation = validateChartData(filtered);
+        if (filteredValidation.isValid) {
+            setFilteredSeries(filtered);
+        } else {
+            // Show warning if filtered data becomes invalid
+            setValidationResult(filteredValidation);
+            setFilteredSeries([]);
+        }
+    }, [series, startYear, endYear, validationResult.isValid]);
 
     // Update chart when filtered data changes
     useEffect(() => {
@@ -244,16 +269,21 @@ export const ChartComponent_v2 = ({ selectedFeature, options }) => {
 
             {/* Chart container */}
             <div className="chart-container">
-                {selectedFeature ? (
-                    <canvas ref={chartRef}></canvas>
-                ) : (
+                {!selectedFeature ? (
                     <div className="no-data-message">
                         <p>No data available. Please select a region on the map.</p>
                     </div>
+                ) : !validationResult.isValid ? (
+                    <div className="warning-message">
+                        <p>⚠️ {validationResult.message}</p>
+                        <p className="warning-hint">Try selecting a different region or adjusting the time range.</p>
+                    </div>
+                ) : (
+                    <canvas ref={chartRef}></canvas>
                 )}
 
                 {/* Loading indicator */}
-                {selectedFeature && !dataReady && (
+                {selectedFeature && !dataReady && validationResult.isValid && (
                     <div className="loading-overlay">
                         <div className="loading-spinner"></div>
                         <p>Processing data...</p>

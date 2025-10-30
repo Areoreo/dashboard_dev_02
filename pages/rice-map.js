@@ -57,10 +57,27 @@ const getCurrentDateInfo = () => {
  * Determine if a given date is historical, current, or forecast
  * @param {string} selectedYear - Selected year as string
  * @param {string} selectedMonth - Selected month as string (with leading zero)
+ * @param {string} dateType - "Yearly" or "Monthly" to determine comparison granularity
  * @returns {string} "hist", "current", or "forecast"
  */
-const getDateType = (selectedYear, selectedMonth) => {
+const getDateType = (selectedYear, selectedMonth, dateType = "Monthly") => {
     const currentInfo = getCurrentDateInfo();
+
+    // Handle Yearly comparison separately
+    if (dateType === "Yearly") {
+        const selectedYearNum = parseInt(selectedYear);
+        const currentYearNum = currentInfo.year;
+
+        if (selectedYearNum < currentYearNum) {
+            return "hist";
+        } else if (selectedYearNum === currentYearNum) {
+            return "current";
+        } else {
+            return "forecast";
+        }
+    }
+
+    // Handle Monthly comparison
     const selectedDate = parseInt(`${selectedYear}${selectedMonth}`);
     const currentDate = parseInt(currentInfo.dateString);
 

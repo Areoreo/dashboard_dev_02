@@ -30,10 +30,27 @@ const getCurrentDateInfo = () => {
  * Determine if a given date is historical, current, or forecast
  * @param {string} selectedYear - Selected year as string
  * @param {string} selectedMonth - Selected month as string (with leading zero)
+ * @param {string} dateType - "Yearly" or "Monthly" to determine comparison granularity
  * @returns {string} "hist", "current", or "forecast"
  */
-const getDateType = (selectedYear, selectedMonth) => {
+const getDateType = (selectedYear, selectedMonth, dateType = "Monthly") => {
     const currentInfo = getCurrentDateInfo();
+
+    // Handle Yearly comparison separately
+    if (dateType === "Yearly") {
+        const selectedYearNum = parseInt(selectedYear);
+        const currentYearNum = currentInfo.year;
+
+        if (selectedYearNum < currentYearNum) {
+            return "hist";
+        } else if (selectedYearNum === currentYearNum) {
+            return "current";
+        } else {
+            return "forecast";
+        }
+    }
+
+    // Handle Monthly comparison
     const selectedDate = parseInt(`${selectedYear}${selectedMonth}`);
     const currentDate = parseInt(currentInfo.dateString);
 
@@ -79,6 +96,7 @@ export const ResponsiveNavbar = ({
     const [selectedLanguage, setSelectedLanguage] = useState("English");
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [isUserInteraction, setIsUserInteraction] = useState(false);
 
     // Check if mobile on component mount and window resize
     useEffect(() => {
@@ -115,10 +133,12 @@ export const ResponsiveNavbar = ({
     }, [isMobileMenuOpen]);
 
     // Auto-sync overview state based on selected date
+    // IMPORTANT: This effect only syncs overview, it should NOT trigger date changes
     useEffect(() => {
-        const dateType = getDateType(selectedYear, selectedMonth);
+        const dateType = getDateType(selectedYear, selectedMonth, options.dateType);
 
-        // Only update if there's a mismatch
+        // Only update overview if there's a mismatch
+        // This will NOT trigger handleOverviewClick, just updates the state
         if (dateType === "current" && options.overview !== "forecast") {
             // Current date should use forecast overview (as current is a subset of forecast)
             updateOption("overview", "forecast");
@@ -127,7 +147,7 @@ export const ResponsiveNavbar = ({
         } else if (dateType === "forecast" && options.overview !== "forecast") {
             updateOption("overview", "forecast");
         }
-    }, [selectedYear, selectedMonth, options.overview, updateOption]);
+    }, [selectedYear, selectedMonth, options.dateType, options.overview, updateOption]);
 
     // When clicking current trigger
     const handleCurrentClick = () => {
@@ -214,7 +234,7 @@ export const ResponsiveNavbar = ({
                     <div className="dash-top-buttons">
                         <button
                             className={`dash-top-button ${
-                                getDateType(selectedYear, selectedMonth) ===
+                                getDateType(selectedYear, selectedMonth, options.dateType) ===
                                 "hist"
                                     ? "active"
                                     : ""
@@ -225,7 +245,7 @@ export const ResponsiveNavbar = ({
                         </button>
                         <button
                             className={`dash-top-button current-button ${
-                                getDateType(selectedYear, selectedMonth) ===
+                                getDateType(selectedYear, selectedMonth, options.dateType) ===
                                 "current"
                                     ? "active"
                                     : ""
@@ -236,7 +256,7 @@ export const ResponsiveNavbar = ({
                         </button>
                         <button
                             className={`dash-top-button ${
-                                getDateType(selectedYear, selectedMonth) ===
+                                getDateType(selectedYear, selectedMonth, options.dateType) ===
                                 "forecast"
                                     ? "active"
                                     : ""
@@ -344,7 +364,7 @@ export const ResponsiveNavbar = ({
                         <div className="flex flex-col space-y-2">
                             <button
                                 className={`p-2 rounded ${
-                                    getDateType(selectedYear, selectedMonth) ===
+                                    getDateType(selectedYear, selectedMonth, options.dateType) ===
                                     "hist"
                                         ? "bg-blue-500 text-white"
                                         : "bg-gray-100"
@@ -355,7 +375,7 @@ export const ResponsiveNavbar = ({
                             </button>
                             <button
                                 className={`p-2 rounded ${
-                                    getDateType(selectedYear, selectedMonth) ===
+                                    getDateType(selectedYear, selectedMonth, options.dateType) ===
                                     "current"
                                         ? "bg-blue-500 text-white"
                                         : "bg-gray-100"
@@ -366,7 +386,7 @@ export const ResponsiveNavbar = ({
                             </button>
                             <button
                                 className={`p-2 rounded ${
-                                    getDateType(selectedYear, selectedMonth) ===
+                                    getDateType(selectedYear, selectedMonth, options.dateType) ===
                                     "forecast"
                                         ? "bg-blue-500 text-white"
                                         : "bg-gray-100"
